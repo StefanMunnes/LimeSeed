@@ -1,11 +1,13 @@
 Package: LimeSeed
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
+Title: Use a structured YAML file as a survey source for LimeSurvey
+Version: 0.0.1
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+    person("Stefan", "Munnes", , "munnes@wzb.eu", role = c("aut", "cre"))
+Description: Avoid lots of manual click-around in the LimeSurvey web interface by simply creating and editing a user-friendly YAML file. This package converts that structured input so it can be imported directly into LimeSurvey to create a new survey. With this file-oriented approach, you have all the structure, content, and changes in your coding workflow.
+License: MIT + file LICENSE
+Imports:
+    limonaid,
+    yaml
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
