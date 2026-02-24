@@ -62,16 +62,11 @@ grow_structure <- function(tree, sprout = sprout) {
       qst_data <- grp_data[[qst_code]]
 
       # 6. Instantiate Question Manually
-      qst_obj <- limonaid::Question$new(
+      # First, define the explicit parameters
+      explicit_params <- list(
         code = qst_code,
         type = qst_data$type,
         lsType = qst_data$lsType,
-
-        # Link to Parent IDs (Critical for export)
-        # sid = tree$sid,
-        # gid = current_group$id,
-        # new_id_fun = current_group$new_id_fun, # Pass ID generator if available
-
         questionTexts = process_text(qst_data$questionTexts),
         helpTexts = process_text(qst_data$helpTexts),
         relevance = qst_data$relevance %||% 1,
@@ -87,14 +82,39 @@ grow_structure <- function(tree, sprout = sprout) {
         question_order = qst_data$question_order %||% 0,
         cssclass = qst_data$cssclass %||% "",
         hide_tip = qst_data$hide_tip %||% "",
-        # TODO: check how to deal with hidden inside otherOptions
         hidden = qst_data$hidden,
         random_order = qst_data$random_order,
         text_input_width = qst_data$text_input_width,
+        input_size = qst_data$input_size,
         random_group = qst_data$random_group %||% "",
+        maximum_chars = qst_data$maximum_chars,
+        min_num_value = qst_data$min_num_value,
+        max_num_value = qst_data$max_num_value,
+        min_num_value_n = qst_data$min_num_value_n,
+        max_num_value_n = qst_data$max_num_value_n,
+        num_value_int_only = qst_data$num_value_int_only,
         prefix = process_text(qst_data$prefix),
-        suffix = process_text(qst_data$suffix),
-        otherOptions = qst_data$otherOptions
+        suffix = process_text(qst_data$suffix)
+      )
+
+      # Get the names of explicit parameters
+      explicit_param_names <- names(explicit_params)
+
+      # Extract any additional options from qst_data that aren't in explicit_params
+      additional_options <- qst_data[
+        !names(qst_data) %in%
+          c(
+            explicit_param_names,
+            "answerOptions",
+            "subquestions",
+            "otherOptions"
+          )
+      ]
+
+      # Create the question using do.call to pass both explicit and additional params
+      qst_obj <- do.call(
+        limonaid::Question$new,
+        c(explicit_params, additional_options)
       )
 
       # 7. Add Answer Options (to the R6 Question Object)
