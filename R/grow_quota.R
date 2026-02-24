@@ -6,7 +6,7 @@
 #' list from imported YAML file created by `lime_sprout` or manually created
 #' @export
 grow_quota <- function(tree, sprout = sprout) {
-  if (!is.null(sprout$quota)) {
+  if (is.null(sprout$quota)) {
     stop("Quota is not available in provided YAML file(s).")
   }
 
