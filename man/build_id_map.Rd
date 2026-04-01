@@ -7,7 +7,7 @@
 build_id_map(structure)
 }
 \arguments{
-\item{structure}{Named list from \code{sprout$structure}.}
+\item{structure}{Named list from \code{seed$structure}.}
 }
 \value{
 Named integer vector. Keys: \code{"G:code"}, \code{"Q:code"}, \code{"SQ:qcode:sqcode"}.

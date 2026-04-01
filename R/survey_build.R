@@ -46,34 +46,39 @@ build_lang_rows <- function(s, lang) {
   e <- EMAIL_DEFAULTS
 
   sl_fields <- list(
-    surveyls_survey_id            = as.character(s$sid),
-    surveyls_language             = lang,
-    surveyls_title                = get_text(s$titles, lang),
-    surveyls_description          = get_text(s$descriptions, lang),
-    surveyls_welcometext          = get_text(s$welcomeTexts, lang),
-    surveyls_policy_notice        = get_text(s$policy_notice, lang),
-    surveyls_policy_notice_label  = get_text(s$policy_notice_label, lang),
-    surveyls_endtext              = get_text(s$endTexts, lang),
-    surveyls_url                  = get_text(s$endURLs, lang),
-    surveyls_urldescription       = get_text(s$endURLdescriptions, lang),
-    surveyls_email_invite_subj    = e$surveyls_email_invite_subj,
-    surveyls_email_invite         = e$surveyls_email_invite,
-    surveyls_email_remind_subj    = e$surveyls_email_remind_subj,
-    surveyls_email_remind         = e$surveyls_email_remind,
-    surveyls_email_register_subj  = e$surveyls_email_register_subj,
-    surveyls_email_register       = e$surveyls_email_register,
-    surveyls_email_confirm_subj   = e$surveyls_email_confirm_subj,
-    surveyls_email_confirm        = e$surveyls_email_confirm,
-    surveyls_dateformat           = as.character(s$dateformats %||% 6),
+    surveyls_survey_id = as.character(s$sid),
+    surveyls_language = lang,
+    surveyls_title = get_text(s$titles, lang),
+    surveyls_description = get_text(s$descriptions, lang),
+    surveyls_welcometext = get_text(s$welcomeTexts, lang),
+    surveyls_policy_notice = get_text(s$policy_notice, lang),
+    surveyls_policy_notice_label = get_text(s$policy_notice_label, lang),
+    surveyls_endtext = get_text(s$endTexts, lang),
+    surveyls_url = get_text(s$endURLs, lang),
+    surveyls_urldescription = get_text(s$endURLdescriptions, lang),
+    surveyls_email_invite_subj = e$surveyls_email_invite_subj,
+    surveyls_email_invite = e$surveyls_email_invite,
+    surveyls_email_remind_subj = e$surveyls_email_remind_subj,
+    surveyls_email_remind = e$surveyls_email_remind,
+    surveyls_email_register_subj = e$surveyls_email_register_subj,
+    surveyls_email_register = e$surveyls_email_register,
+    surveyls_email_confirm_subj = e$surveyls_email_confirm_subj,
+    surveyls_email_confirm = e$surveyls_email_confirm,
+    surveyls_dateformat = as.character(s$dateformats %||% 6),
     email_admin_notification_subj = e$email_admin_notification_subj,
-    email_admin_notification      = e$email_admin_notification,
-    email_admin_responses_subj    = e$email_admin_responses_subj,
-    email_admin_responses         = e$email_admin_responses,
-    surveyls_numberformat         = as.character(s$numberformats %||% 0)
+    email_admin_notification = e$email_admin_notification,
+    email_admin_responses_subj = e$email_admin_responses_subj,
+    email_admin_responses = e$email_admin_responses,
+    surveyls_numberformat = as.character(s$numberformats %||% 0)
   )
 
   lapply(names(sl_fields), function(field) {
-    ls_row(class = "SL", name = field, text = sl_fields[[field]], language = lang)
+    ls_row(
+      class = "SL",
+      name = field,
+      text = sl_fields[[field]],
+      language = lang
+    )
   })
 }
 
@@ -85,7 +90,7 @@ build_lang_rows <- function(s, lang) {
 #' IDs are assigned depth-first: group → questions → subquestions.
 #' Answer options reuse their parent question's ID and consume no counter slot.
 #'
-#' @param structure Named list from `sprout$structure`.
+#' @param structure Named list from `seed$structure`.
 #' @return Named integer vector. Keys: `"G:code"`, `"Q:code"`, `"SQ:qcode:sqcode"`.
 #' @keywords internal
 build_id_map <- function(structure) {
@@ -99,13 +104,13 @@ build_id_map <- function(structure) {
 
   for (grp_code in names(structure)) {
     new_id(paste0("G:", grp_code))
-    grp_data  <- structure[[grp_code]]
+    grp_data <- structure[[grp_code]]
     qst_codes <- setdiff(names(grp_data), "groupOptions")
 
     for (qst_code in qst_codes) {
       new_id(paste0("Q:", qst_code))
       qst_data <- grp_data[[qst_code]]
-      sqs      <- qst_data$subquestions %||% list()
+      sqs <- qst_data$subquestions %||% list()
       for (sq_code in names(sqs)) {
         new_id(paste0("SQ:", qst_code, ":", sq_code))
       }
@@ -125,36 +130,44 @@ build_structure_rows <- function(
   lang,
   id_map,
   primary_lang,
-  quotas       = NULL,
+  quotas = NULL,
   quota_id_map = NULL
 ) {
   rows <- list()
 
   for (grp_code in names(structure)) {
     grp_data <- structure[[grp_code]]
-    grp_id   <- id_map[[paste0("G:", grp_code)]]
+    grp_id <- id_map[[paste0("G:", grp_code)]]
     grp_opts <- grp_data$groupOptions %||% list()
 
-    rows <- c(rows, list(ls_row(
-      id         = grp_id,
-      class      = "G",
-      type.scale = "0",
-      name       = get_text_fb(grp_opts$titles %||% grp_code, lang, primary_lang),
-      relevance  = as.character(grp_opts$relevance %||% 1),
-      text       = get_text_fb(grp_opts$descriptions, lang, primary_lang),
-      language   = lang,
-      random_group = as.character(grp_opts$random_group %||% "")
-    )))
+    rows <- c(
+      rows,
+      list(ls_row(
+        id = grp_id,
+        class = "G",
+        type.scale = "0",
+        name = get_text_fb(grp_opts$titles %||% grp_code, lang, primary_lang),
+        relevance = as.character(grp_opts$relevance %||% 1),
+        text = get_text_fb(grp_opts$descriptions, lang, primary_lang),
+        language = lang,
+        random_group = as.character(grp_opts$random_group %||% "")
+      ))
+    )
 
     for (qst_code in setdiff(names(grp_data), "groupOptions")) {
       qst_data <- grp_data[[qst_code]]
-      qst_id   <- id_map[[paste0("Q:", qst_code)]]
+      qst_id <- id_map[[paste0("Q:", qst_code)]]
       rows <- c(
         rows,
         build_question_rows(
-          qst_id, qst_code, qst_data,
-          lang, primary_lang, id_map,
-          quotas, quota_id_map
+          qst_id,
+          qst_code,
+          qst_data,
+          lang,
+          primary_lang,
+          id_map,
+          quotas,
+          quota_id_map
         )
       )
     }
@@ -188,44 +201,50 @@ build_question_rows <- function(
   lang,
   primary_lang,
   id_map,
-  quotas       = NULL,
+  quotas = NULL,
   quota_id_map = NULL
 ) {
-  rows    <- list()
+  rows <- list()
   ls_type <- resolve_question_type(qst_code, qst_data)
 
   # ── Q row: core fixed columns ─────────────────────────────────────────────
   q_row <- ls_row(
-    id           = qst_id,
-    class        = "Q",
-    type.scale   = ls_type,
-    name         = qst_code,
-    relevance    = as.character(qst_data$relevance  %||% "1"),
-    text         = get_text_fb(qst_data$questionTexts, lang, primary_lang),
-    help         = get_text_fb(qst_data$helpTexts,     lang, primary_lang),
-    language     = lang,
-    validation   = as.character(qst_data$validation   %||% ""),
-    mandatory    = as.character(qst_data$mandatory    %||% "N"),
-    other        = as.character(qst_data$other        %||% "N"),
-    default      = get_text_fb(qst_data$default,       lang, primary_lang),
+    id = qst_id,
+    class = "Q",
+    type.scale = ls_type,
+    name = qst_code,
+    relevance = as.character(qst_data$relevance %||% "1"),
+    text = get_text_fb(qst_data$questionTexts, lang, primary_lang),
+    help = get_text_fb(qst_data$helpTexts, lang, primary_lang),
+    language = lang,
+    validation = as.character(qst_data$validation %||% ""),
+    mandatory = as.character(qst_data$mandatory %||% "N"),
+    other = as.character(qst_data$other %||% "N"),
+    default = get_text_fb(qst_data$default, lang, primary_lang),
     same_default = as.character(qst_data$same_default %||% "0"),
-    prefix       = get_text_fb(qst_data$prefix,        lang, primary_lang),
-    suffix       = get_text_fb(qst_data$suffix,        lang, primary_lang)
+    prefix = get_text_fb(qst_data$prefix, lang, primary_lang),
+    suffix = get_text_fb(qst_data$suffix, lang, primary_lang)
   )
 
   # ── Q row: extra attribute columns from LS_TYPES[[ls_type]]$options ───────
-  type_opts   <- LS_TYPES[[ls_type]]$options %||% list()
+  type_opts <- LS_TYPES[[ls_type]]$options %||% list()
   user_extras <- qst_data[!names(qst_data) %in% Q_CORE_FIELDS]
 
   for (opt_name in names(type_opts)) {
-    if (opt_name %in% Q_CORE_FIELDS) next   # already written above
+    if (opt_name %in% Q_CORE_FIELDS) {
+      next
+    } # already written above
 
-    opt_spec  <- type_opts[[opt_name]]
-    user_val  <- user_extras[[opt_name]]
-    is_lang   <- isTRUE(opt_spec$language)
+    opt_spec <- type_opts[[opt_name]]
+    user_val <- user_extras[[opt_name]]
+    is_lang <- isTRUE(opt_spec$language)
 
     val_to_write <- if (!is.null(user_val)) {
-      if (is_lang) get_text_fb(user_val, lang, primary_lang) else as.character(user_val)
+      if (is_lang) {
+        get_text_fb(user_val, lang, primary_lang)
+      } else {
+        as.character(user_val)
+      }
     } else if (!is.null(opt_spec$default)) {
       as.character(opt_spec$default)
     } else {
@@ -244,21 +263,24 @@ build_question_rows <- function(
 
   for (sq_code in names(sqs)) {
     sq_data <- sqs[[sq_code]]
-    sq_id   <- id_map[[paste0("SQ:", qst_code, ":", sq_code)]]
+    sq_id <- id_map[[paste0("SQ:", qst_code, ":", sq_code)]]
 
-    rows <- c(rows, list(ls_row(
-      id           = sq_id,
-      class        = "SQ",
-      type.scale   = as.character(sq_attr(sq_data, "type.scale", 0)),
-      name         = as.character(sq_code),
-      relevance    = as.character(sq_attr(sq_data, "relevance", 1)),
-      text         = sq_text_fb(sq_data, lang, primary_lang),
-      help         = sq_field_fb(sq_data, "helpTexts", lang, primary_lang),
-      language     = lang,
-      mandatory    = as.character(sq_attr(sq_data, "mandatory", "")),
-      default      = sq_field_fb(sq_data, "default", lang, primary_lang),
-      same_default = as.character(sq_attr(sq_data, "same_default", ""))
-    )))
+    rows <- c(
+      rows,
+      list(ls_row(
+        id = sq_id,
+        class = "SQ",
+        type.scale = as.character(sq_attr(sq_data, "type.scale", 0)),
+        name = as.character(sq_code),
+        relevance = as.character(sq_attr(sq_data, "relevance", 1)),
+        text = sq_text_fb(sq_data, lang, primary_lang),
+        help = sq_field_fb(sq_data, "helpTexts", lang, primary_lang),
+        language = lang,
+        mandatory = as.character(sq_attr(sq_data, "mandatory", "")),
+        default = sq_field_fb(sq_data, "default", lang, primary_lang),
+        same_default = as.character(sq_attr(sq_data, "same_default", ""))
+      ))
+    )
   }
 
   # ── A rows ────────────────────────────────────────────────────────────────
@@ -266,15 +288,18 @@ build_question_rows <- function(
   if (ls_type != "M" && !is.null(qst_data$answerOptions)) {
     for (ans_code in names(qst_data$answerOptions)) {
       ans_data <- qst_data$answerOptions[[ans_code]]
-      rows <- c(rows, list(ls_row(
-        id         = qst_id,   # A rows reuse the parent question's id
-        class      = "A",
-        type.scale = as.character(ans_attr(ans_data, "type.scale", 0)),
-        name       = as.character(ans_code),
-        relevance  = as.character(ans_attr(ans_data, "relevance", "")),
-        text       = ans_text_fb(ans_data, lang, primary_lang),
-        language   = lang
-      )))
+      rows <- c(
+        rows,
+        list(ls_row(
+          id = qst_id, # A rows reuse the parent question's id
+          class = "A",
+          type.scale = as.character(ans_attr(ans_data, "type.scale", 0)),
+          name = as.character(ans_code),
+          relevance = as.character(ans_attr(ans_data, "relevance", "")),
+          text = ans_text_fb(ans_data, lang, primary_lang),
+          language = lang
+        ))
+      )
     }
   }
 
@@ -292,12 +317,15 @@ build_question_rows <- function(
         ans_codes <- as.character(unlist(q_def$members[[qst_code]]))
 
         for (ans in ans_codes) {
-          rows <- c(rows, list(ls_row(
-            # id filled in post-hoc by build_lsdf()
-            related_id = quota_id_map[[q_name]],
-            class      = "QTAM",
-            name       = ans
-          )))
+          rows <- c(
+            rows,
+            list(ls_row(
+              # id filled in post-hoc by build_lsdf()
+              related_id = quota_id_map[[q_name]],
+              class = "QTAM",
+              name = ans
+            ))
+          )
         }
       }
     }
@@ -310,12 +338,12 @@ build_question_rows <- function(
 #' Build QTA and QTALS rows (appended at the end of the TSV)
 #' @keywords internal
 build_quota_rows <- function(quotas, langs, primary_lang, quota_id_map) {
-  rows            <- list()
+  rows <- list()
   qtals_id_counter <- 1L
 
   for (q_name in names(quotas)) {
     q_id <- quota_id_map[[q_name]]
-    q    <- quotas[[q_name]]
+    q <- quotas[[q_name]]
 
     # ── QTA row ──────────────────────────────────────────────────────────────
     # Column mapping (per LimeSurvey TSV spec):
@@ -323,15 +351,20 @@ build_quota_rows <- function(quotas, langs, primary_lang, quota_id_map) {
     #   other        → action
     #   default      → active
     #   same_default → autoloadURL
-    rows <- c(rows, list(ls_row(
-      id           = q_id,
-      class        = "QTA",
-      name         = q_name,
-      mandatory    = as.character(q$limit),
-      other        = as.character(q$action       %||% LS_QUOTA_OPTIONS$action$default),
-      default      = as.character(q$active       %||% LS_QUOTA_OPTIONS$active$default),
-      same_default = as.character(q$autoloadURL  %||% LS_QUOTA_OPTIONS$autoloadURL$default)
-    )))
+    rows <- c(
+      rows,
+      list(ls_row(
+        id = q_id,
+        class = "QTA",
+        name = q_name,
+        mandatory = as.character(q$limit),
+        other = as.character(q$action %||% LS_QUOTA_OPTIONS$action$default),
+        default = as.character(q$active %||% LS_QUOTA_OPTIONS$active$default),
+        same_default = as.character(
+          q$autoloadURL %||% LS_QUOTA_OPTIONS$autoloadURL$default
+        )
+      ))
+    )
 
     # ── QTALS rows (one per survey language) ─────────────────────────────────
     # Column mapping (per LimeSurvey TSV spec):
@@ -339,15 +372,18 @@ build_quota_rows <- function(quotas, langs, primary_lang, quota_id_map) {
     #   text      → redirect URL
     #   help      → URL description
     for (lang in langs) {
-      rows <- c(rows, list(ls_row(
-        id         = qtals_id_counter,
-        related_id = q_id,
-        class      = "QTALS",
-        relevance  = get_text_fb(q$messageTexts,    lang, primary_lang),
-        text       = get_text_fb(q$urls,            lang, primary_lang),
-        help       = get_text_fb(q$urlDescriptions, lang, primary_lang),
-        language   = lang
-      )))
+      rows <- c(
+        rows,
+        list(ls_row(
+          id = qtals_id_counter,
+          related_id = q_id,
+          class = "QTALS",
+          relevance = get_text_fb(q$messageTexts, lang, primary_lang),
+          text = get_text_fb(q$urls, lang, primary_lang),
+          help = get_text_fb(q$urlDescriptions, lang, primary_lang),
+          language = lang
+        ))
+      )
       qtals_id_counter <- qtals_id_counter + 1L
     }
   }
@@ -376,7 +412,9 @@ ls_row <- function(...) {
 #'
 #' @keywords internal
 get_text_fb <- function(input, lang, primary_lang) {
-  if (is.null(input)) return("")
+  if (is.null(input)) {
+    return("")
+  }
 
   if (is.null(names(input))) {
     return(trimws(paste(as.character(input), collapse = "")))
@@ -385,10 +423,14 @@ get_text_fb <- function(input, lang, primary_lang) {
   try_get <- function(l) trimws(as.character(input[[l]] %||% ""))
 
   val <- try_get(lang)
-  if (nchar(val) > 0) return(val)
+  if (nchar(val) > 0) {
+    return(val)
+  }
 
   val <- try_get(primary_lang)
-  if (nchar(val) > 0) return(val)
+  if (nchar(val) > 0) {
+    return(val)
+  }
 
   for (v in input) {
     v <- trimws(as.character(v))
@@ -404,8 +446,12 @@ get_text_fb <- function(input, lang, primary_lang) {
 #' Used for SL-rows where each language block must contain only its own texts.
 #' @keywords internal
 get_text <- function(input, lang) {
-  if (is.null(input))         return("")
-  if (is.null(names(input)))  return(trimws(paste(as.character(input), collapse = "")))
+  if (is.null(input)) {
+    return("")
+  }
+  if (is.null(names(input))) {
+    return(trimws(paste(as.character(input), collapse = "")))
+  }
   trimws(as.character(input[[lang]] %||% ""))
 }
 
@@ -423,12 +469,20 @@ sq_text_fb <- function(sq_data, lang, primary_lang) {
 
 #' @keywords internal
 sq_field_fb <- function(sq_data, field, lang, primary_lang) {
-  if (is.list(sq_data)) get_text_fb(sq_data[[field]], lang, primary_lang) else ""
+  if (is.list(sq_data)) {
+    get_text_fb(sq_data[[field]], lang, primary_lang)
+  } else {
+    ""
+  }
 }
 
 #' @keywords internal
 sq_attr <- function(sq_data, attr, default) {
-  if (is.list(sq_data) && !is.null(sq_data[[attr]])) sq_data[[attr]] else default
+  if (is.list(sq_data) && !is.null(sq_data[[attr]])) {
+    sq_data[[attr]]
+  } else {
+    default
+  }
 }
 
 
@@ -445,5 +499,9 @@ ans_text_fb <- function(ans_data, lang, primary_lang) {
 
 #' @keywords internal
 ans_attr <- function(ans_data, attr, default) {
-  if (is.list(ans_data) && !is.null(ans_data[[attr]])) ans_data[[attr]] else default
+  if (is.list(ans_data) && !is.null(ans_data[[attr]])) {
+    ans_data[[attr]]
+  } else {
+    default
+  }
 }

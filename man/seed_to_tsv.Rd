@@ -7,10 +7,10 @@
 seed_to_tsv(seed, file)
 }
 \arguments{
-\item{seed}{Survey definition in any format accepted by \code{\link[=prime_seed]{prime_seed()}}:
+\item{seed}{Survey definition in any format accepted by \code{\link[=load_seed]{load_seed()}}:
 a path to a single YAML file, a path to a folder of YAML files, a
 named list of file paths, a mixed named list of paths and R lists, or
-a pre-loaded seed list.  See \code{\link[=prime_seed]{prime_seed()}} for full details.}
+a pre-loaded seed list.  See \code{\link[=load_seed]{load_seed()}} for full details.}
 
 \item{file}{Path to the output \code{.tsv} file.  The parent directory must
 already exist; it will not be created automatically.}
@@ -21,12 +21,13 @@ is the \code{.tsv} file created at \code{file}.
 }
 \description{
 Convenience wrapper that runs the full three-stage pipeline —
-\code{\link[=prime_seed]{prime_seed()}} → \code{\link[=build_lsdf]{build_lsdf()}} → \code{\link[=write_lsdf]{write_lsdf()}} — in a single call.
+\code{\link[=load_seed]{load_seed()}} → \code{\link[=validate_seed]{validate_seed()}} -> \code{\link[=build_lsdf]{build_lsdf()}} → \code{\link[=write_lsdf]{write_lsdf()}} — in a single call.
 Use this with prepared seed file(s) or programmatic created or modified seed object.
+Always stops on errors.
 }
 \examples{
 \dontrun{
-# Any seed format works — prime_seed() handles normalisation internally.
+# Any seed format works — load_seed() handles normalisation internally.
 
 # Single combined YAML file
 seed_to_tsv("path/to/survey.yaml", "output/survey.tsv")
@@ -43,18 +44,19 @@ seed_to_tsv(
   file = "output/survey.tsv"
 )
 
-# When seed manipulation is required, load with [prime_seed()], manipulate and feed back into seed_to_tsv() pipeline
-sprout <- prime_seed("path/to/survey.yaml")
-sprout$settings$mandatory        <- "N"
-sprout$structure$G1$Q2$relevance <- "Q1 == 'yes'"
-seed_to_tsv(sprout, "output/survey.tsv")   # sprout is a valid seed (case 5)
+# When seed manipulation is required, load with [load_seed()], manipulate and feed back into seed_to_tsv() pipeline
+seed <- load_seed("path/to/survey.yaml")
+seed$settings$mandatory        <- "N"
+seed$structure$G1$Q2$relevance <- "Q1 == 'yes'"
+seed_to_tsv(seed, "output/survey.tsv")   # seed is a valid seed (case 5)
 }
 
 }
 \seealso{
 \itemize{
-\item \code{\link[=prime_seed]{prime_seed()}} — stage 1: read and normalise a seed into a sprout.
-\item \code{\link[=build_lsdf]{build_lsdf()}} — stage 2: compile a sprout into a LimeSurvey data frame.
-\item \code{\link[=write_lsdf]{write_lsdf()}} — stage 3: format and write the data frame to a TSV file.
+\item \code{\link[=load_seed]{load_seed()}} — stage 1: read and normalise various seed files into a seed.
+\item \code{\link[=validate_seed]{validate_seed()}} - stage 2: validate seed and report any issues.
+\item \code{\link[=build_lsdf]{build_lsdf()}} — stage 3: compile a seed into a LimeSurvey data frame.
+\item \code{\link[=write_lsdf]{write_lsdf()}} — stage 4: format and write the data frame to a TSV file.
 }
 }

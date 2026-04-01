@@ -2,11 +2,11 @@
 % Please edit documentation in R/survey_validate.R
 \name{find_group_of_qst}
 \alias{find_group_of_qst}
-\title{Find the group name that contains a given question code}
+\title{Find the group name containing a given question code}
 \usage{
 find_group_of_qst(qst_code, structure)
 }
 \description{
-Find the group name that contains a given question code
+Find the group name containing a given question code
 }
 \keyword{internal}

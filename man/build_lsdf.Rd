@@ -2,18 +2,18 @@
 % Please edit documentation in R/seed_to_tsv.R
 \name{build_lsdf}
 \alias{build_lsdf}
-\title{Build the LimeSurvey data frame from a sprout list}
+\title{Build the LimeSurvey data frame from a seed list}
 \usage{
-build_lsdf(sprout)
+build_lsdf(seed)
 }
 \arguments{
-\item{sprout}{Named list with \code{settings} and \code{structure} elements.}
+\item{seed}{Named list with \code{settings} and \code{structure} elements.}
 }
 \value{
 data.frame with columns matching \link{LS_COLUMNS} (all character).
 }
 \description{
-Build the LimeSurvey data frame from a sprout list
+Build the LimeSurvey data frame from a seed list
 }
 \seealso{
 \code{\link[=write_lsdf]{write_lsdf()}}, \code{\link[=seed_to_tsv]{seed_to_tsv()}}

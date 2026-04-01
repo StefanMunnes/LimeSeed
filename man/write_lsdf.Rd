@@ -16,7 +16,7 @@ Invisibly, the data frame as written.
 }
 \description{
 Format-only: applies LimeSurvey quoting rules and writes UTF-8 TSV.
-Has no knowledge of sprout structure.
+Has no knowledge of seed structure.
 }
 \seealso{
 \code{\link[=build_lsdf]{build_lsdf()}}, \code{\link[=seed_to_tsv]{seed_to_tsv()}}
