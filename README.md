@@ -8,15 +8,45 @@ Avoid tedious and error-prone manual clicking through the web interface. Edit yo
 
 --- 
 
+## Core Concept
+
+At the heart of LimeSeed is the **seed** — a structured survey definition that fully describes your questionnaire in a simple and clean format.
+
+A seed can come in multiple forms:
+
+- **single YAML file** → with settings, structure, optional quota
+- **multiple YAML files** → for settings, structure, optional quota
+- **R list** → create manually or programmatically
+
+Every seed input is normalized into a consistent internal structure that can be modfied, validated, and reused.
+
+YAML is used as the primary format because it combines **readability** with **structure**. It is concise and easy to review, yet expressive enough to represent complex survey logic. At the same time, it integrates naturally with R, allowing a smooth transition between static files and programmatic workflows.
+
+This makes the seed a powerful abstraction:
+
+- **Readable** → clear, concise, and easy to maintain
+- **Flexible** → works both as static files and dynamic R objects
+- **Portable** → independent of the LimeSurvey interface
+- **Reproducible** → version-control friendly and deterministic
+
+Because the seed is just data, you can:
+
+- adjust survey logic or content dynamically
+- reuse and combine survey components
+- generate multiple survey variants
+- integrate survey generation into data pipelines
+
+---
+
 ## Pipeline
 
 LimeSeed follows a simple, three-stage pipeline for turning survey definitions into LimeSurvey import files:
 
-1. **Load & Validate** – validate_seed() checks and normalizes the input (internally using load_seed() to support multiple input formats such as YAML files, folders, or R lists).
-2. **Build** – build_lsdf() compiles the validated seed into a structured LimeSurvey data frame.
-3. **Write** – write_lsdf() formats and exports the result as a .tsv file ready for import.
+1. **Load & Validate** – validate_seed() checks and normalizes the seed (internally using load_seed() to support multiple input formats such as YAML files, folders, or R lists).
+2. **Build** – build_lsdf() compiles the validated seed into a structured data frame.
+3. **Write** – write_lsdf() exports the data frame as a TSV file ready for import.
 
-The convenience wrapper seed_to_tsv() runs this full pipeline in a single call.
+The convenience wrapper **seed_to_tsv()** runs this full pipeline in a single call.
 For more control, each stage can also be used independently to inspect, modify, or debug the survey before export.
 
 ```mermaid
@@ -29,9 +59,10 @@ flowchart LR
     A --> C
     B --> C
 
+
     %% ── Main wrapper ───────────────────────
     subgraph C["seed_to_tsv()"]
-        direction TB
+        direction LR
 
         D["validate_seed()\n ↪ load_seed()"]
         E["build_lsdf()"]
@@ -66,10 +97,7 @@ flowchart LR
 
 ---
 
-## Quick Start
-
-
-### Installation
+## Installation
 
 ```r
 # Install from GitHub
@@ -78,7 +106,9 @@ devtools::install_github("https://github.com/StefanMunnes/LimeSeed")
 library(LimeSeed)
 ```
 
-### One-liner — seed file directly to TSV
+## Quick Start
+
+### One-liner — YAML seed file directly to TSV
 
 ```r
 seed_to_tsv("my_survey.yaml", "output/my_survey.tsv")
@@ -100,6 +130,8 @@ seed_to_tsv(seed, "output/my_survey.tsv")
 
 ### Programmatic seed — no YAML file needed
 
+A seed can also be defined as a nested R list instead of a YAML file. This can be an easy way for quick testing or simple surveys. One could also use functions to fill the seed.
+
 ```r
 seed <- list(
   settings = list(
@@ -109,8 +141,9 @@ seed <- list(
   structure = list(
     G1 = list(
       Q1 = list(
-        type          = "short text",
-        questionTexts = "What is your name?"
+        type          = "radio",
+        questionTexts = "What is your favorite letter?"
+        answerOptions = letters[1:10]
       )
     )
   )
@@ -121,9 +154,9 @@ seed_to_tsv(seed, "output/my_survey.tsv")
 
 ---
 
-## Survey YAML Format
+## Seed - YAML Format
 
-A LimeSeed YAML file has up to three top-level keys:
+A single YAML file as seed has up to three top-level keys:
 
 ```yaml
 settings:   # Survey-level settings (required)
@@ -131,7 +164,7 @@ structure:  # Groups → questions (required)
 quota:      # Quota definitions (optional)
 ```
 
-*Tip*: When working with larger surveys create distinct `settings.yml`, `structure.yml`, and `quota.yml` files and point a folder path at them as seed input.
+When working with larger surveys create distinct `settings.yml`, `structure.yml`, and `quota.yml` files and point a folder path at them as seed input.
 
 ### Minimal example
 
@@ -153,30 +186,30 @@ structure:
       type: 'radio'
       questionTexts: 'How do you identify?'
       answerOptions:
-        M: 'Male'
-        F: 'Female'
-        D: 'Diverse'
-        N: 'Prefer not to say'
+        'M': 'Male'
+        'F': 'Female'
+        'D': 'Diverse'
+        'N': 'Prefer not to say'
 
   Satisfaction:
     OverallRating:
       type: 'array'
       questionTexts: 'Rate the following aspects:'
       subquestions:
-        SQ1: 'Product quality'
-        SQ2: 'Customer service'
-        SQ3: 'Value for money'
+        'SQ1': 'Product quality'
+        'SQ2': 'Customer service'
+        'SQ3': 'Value for money'
       answerOptions:
-        A1: 'Very poor'
-        A2: 'Poor'
-        A3: 'Neutral'
-        A4: 'Good'
-        A5: 'Excellent'
+        1: 'Very poor'
+        2: 'Poor'
+        3: 'Neutral'
+        4: 'Good'
+        5: 'Excellent'
 
     Comments:
       type: 'long text'
       questionTexts: 'Any further comments?'
-      relevance: "OverallRating_SQ1 <= 2 or OverallRating_SQ2 <= 2"
+      relevance: "OverallRating_SQ1 != 5"
 ```
 
 ### Multi-language example
@@ -223,8 +256,7 @@ quota:
  quota_female:
    limit: 150
    members:
-     Gender:
-       - 'F'
+     Gender: 'F'
    action: 1
    active: 1
    messageTexts:
@@ -234,4 +266,3 @@ quota:
      en: 'https://example.com/closed'
      de: 'https://example.com/geschlossen'
 ```
-
