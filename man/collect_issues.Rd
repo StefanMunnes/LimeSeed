@@ -2,40 +2,14 @@
 % Please edit documentation in R/survey_validate.R
 \name{collect_issues}
 \alias{collect_issues}
-\title{Run validation and report — called internally by build_lsdf()}
+\title{Collect all validation issues without printing or stopping}
 \usage{
 collect_issues(seed, settings)
-}
-\arguments{
-\item{seed}{Normalised seed list.}
-
-\item{settings}{Resolved settings list (output of \code{\link[=resolve_settings]{resolve_settings()}}).}
 }
 \value{
 A list of named lists, each with \code{severity}, \code{location}, \code{message}.
 }
 \description{
-Thin wrapper around \code{\link[=collect_issues]{collect_issues()}} + \code{\link[=report_issues]{report_issues()}} used by
-\code{\link[=build_lsdf]{build_lsdf()}}.  Always stops on errors.  Does not return the issues df.
+Pure collection step — no side effects.  Called by \code{\link[=validate_seed]{validate_seed()}}.
 }
-\keyword{Called}
-\keyword{Collect}
-\keyword{Pure}
-\keyword{[validate_seed()]}
-\keyword{[validate_seed_internal()].}
-\keyword{all}
-\keyword{and}
-\keyword{by}
-\keyword{collection}
-\keyword{effects.}
 \keyword{internal}
-\keyword{issues}
-\keyword{no}
-\keyword{or}
-\keyword{printing}
-\keyword{side}
-\keyword{step}
-\keyword{stopping}
-\keyword{validation}
-\keyword{without}
-\keyword{—}
