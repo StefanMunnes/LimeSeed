@@ -403,6 +403,7 @@ write_lsdf <- function(df, file) {
 #'
 #' @export
 seed_to_tsv <- function(seed, file) {
+  seed <- load_seed(seed)
   validate_seed(seed, file = NULL, stop_on_error = TRUE)
   df <- build_lsdf(seed)
   write_lsdf(df, file)
