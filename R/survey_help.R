@@ -578,3 +578,148 @@ lsh_options <- function(types = "all", search = NULL, lang = "en") {
   .lsh_print_options(codes, opt_names, lang)
   invisible(.lsh_opts_df(opt_names, lang))
 }
+# ══ lsh_settings() — print helpers ════════════════════════════════════════════
+
+.lsh_print_settings <- function(df, is_all, lang) {
+  header <- if (is_all) {
+    sprintf("All LimeSurvey Survey Settings (%s)", toupper(lang))
+  } else {
+    sprintf("LimeSurvey Survey Settings [%d matched]", nrow(df))
+  }
+
+  cat("\n", header, "\n", .lsh_rule(max(40L, nchar(header))), "\n\n", sep = "")
+
+  if (nrow(df) == 0L) {
+    cat("(no settings match)\n\n")
+    return(invisible(NULL))
+  }
+
+  # Calculate dynamic column widths based on content
+  w_name <- max(15L, max(nchar(df$setting))) + 2L
+  w_dflt <- max(7L, max(nchar(df$default))) + 2L
+  w_valid <- max(10L, max(nchar(df$valid))) + 2L
+  w_desc <- 40L # Leave the rest of the space for descriptions
+
+  cat(
+    .lsh_pad("Setting", w_name),
+    .lsh_pad("Default", w_dflt),
+    .lsh_pad("Valid", w_valid),
+    "Description\n"
+  )
+  cat(.lsh_rule(w_name + w_dflt + w_valid + 20L), "\n")
+
+  for (i in seq_len(nrow(df))) {
+    cat(
+      .lsh_pad(df$setting[i], w_name),
+      .lsh_pad(df$default[i], w_dflt),
+      .lsh_pad(df$valid[i], w_valid),
+      .lsh_trunc(df$description[i], w_desc), # Assuming .lsh_trunc exists in survey_help.R
+      "\n"
+    )
+  }
+
+  cat("\n")
+}
+
+#' Describe LimeSurvey survey settings
+#'
+#' Lists the available survey-level settings, displaying their default values,
+#' restricted valid options, and descriptions.
+#'
+#' @param settings Character vector. Setting names to display, search terms,
+#'   or \code{"all"} (default). If a term is not an exact setting name, it is
+#'   used as a substring search against names and descriptions.
+#' @param lang Character. Language for the descriptions (\code{"en"} or \code{"de"}).
+#'
+#' @return A \code{data.frame} with columns \code{setting}, \code{default},
+#'   \code{valid}, and \code{description}, returned \strong{invisibly}.
+#'
+#' @export
+#'
+#' @examples
+#' lsh_settings()
+#' lsh_settings("format")                # Exact match
+#' lsh_settings(c("format", "email"))    # Exact match + search fallback
+#' lsh_settings("email", lang = "de")    # Search with German descriptions
+lsh_settings <- function(settings = "all", lang = "en") {
+  all_settings <- names(LS_SETTINGS)
+  is_all <- identical(settings, "all")
+
+  target_settings <- character(0L)
+
+  if (is_all) {
+    target_settings <- all_settings
+  } else {
+    for (term in as.character(settings)) {
+      # 1. Check for exact match
+      if (term %in% all_settings) {
+        target_settings <- c(target_settings, term)
+      } else {
+        # 2. Fall back to search in names and descriptions
+        s_low <- tolower(trimws(term))
+        matches <- Filter(
+          function(nm) {
+            spec <- LS_SETTINGS[[nm]]
+            any(grepl(
+              s_low,
+              tolower(c(
+                nm,
+                spec$description$en %||% "",
+                spec$description$de %||% ""
+              )),
+              fixed = TRUE
+            ))
+          },
+          all_settings
+        )
+
+        if (length(matches) > 0L) {
+          target_settings <- c(target_settings, matches)
+        } else {
+          warning(
+            sprintf("No setting or description matched: '%s'", term),
+            call. = FALSE
+          )
+        }
+      }
+    }
+    # Remove any duplicates if search terms overlapped
+    target_settings <- unique(target_settings)
+  }
+
+  # Build the data frame
+  rows <- lapply(target_settings, function(nm) {
+    spec <- LS_SETTINGS[[nm]]
+
+    # Format the 'valid' column, handling our .is_num function gracefully
+    v_raw <- spec$valid
+    v_str <- if (is.function(v_raw)) {
+      "<numeric>"
+    } else {
+      .lsh_fmt_valid(v_raw, max_len = 100L)
+    }
+
+    data.frame(
+      setting = nm,
+      default = as.character(spec$default %||% ""),
+      valid = v_str,
+      description = spec$description[[lang]] %||% "",
+      stringsAsFactors = FALSE
+    )
+  })
+
+  df <- if (length(rows) > 0L) {
+    do.call(rbind, rows)
+  } else {
+    data.frame(
+      setting = character(),
+      default = character(),
+      valid = character(),
+      description = character(),
+      stringsAsFactors = FALSE
+    )
+  }
+
+  .lsh_print_settings(df, is_all, lang)
+  invisible(df)
+}

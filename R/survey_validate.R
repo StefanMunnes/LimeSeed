@@ -174,61 +174,51 @@ validate_settings <- function(raw, add) {
     add("error", "settings$titles", "is required.")
   }
 
-  yn_fields <- names(Filter(
-    function(v) identical(v, "Y") || identical(v, "N"),
-    SETTINGS_DEFAULTS
-  ))
-  for (f in yn_fields) {
-    v <- raw[[f]]
-    if (!is.null(v) && !as.character(v) %in% c("Y", "N")) {
-      add(
-        "warning",
-        paste0("settings$", f),
-        paste0("should be \"Y\" or \"N\", got: \"", v, "\".")
-      )
+  # Loop over all settings provided by the user in the YAML
+  for (set_name in names(raw)) {
+    # 'titles' is a required multilingual text block handled specially above;
+    # it is not an official LS setting column, so skip further validation on it.
+    if (set_name == "titles") {
+      next
     }
-  }
 
-  num_fields <- names(Filter(is.numeric, SETTINGS_DEFAULTS))
-  for (f in num_fields) {
-    v <- raw[[f]]
-    if (!is.null(v) && is.na(suppressWarnings(as.numeric(v)))) {
+    spec <- LS_SETTINGS[[set_name]]
+    loc <- paste0("settings$", set_name)
+    val <- raw[[set_name]]
+
+    # If the setting doesn't exist in our known dictionary
+    if (is.null(spec)) {
       add(
         "warning",
-        paste0("settings$", f),
-        paste0("should be numeric, got: \"", v, "\".")
-      )
-    }
-  }
-
-  str_fields <- names(Filter(function(v) identical(v, ""), SETTINGS_DEFAULTS))
-  for (f in str_fields) {
-    v <- raw[[f]]
-    if (!is.null(v) && !is.character(v)) {
-      add(
-        "warning",
-        paste0("settings$", f),
-        paste0("should be character, got class: \"", class(v), "\".")
-      )
-    }
-  }
-
-  for (f in names(SETTINGS_VALID)) {
-    v <- raw[[f]]
-    if (
-      !is.null(v) && !as.character(v) %in% as.character(SETTINGS_VALID[[f]])
-    ) {
-      add(
-        "warning",
-        paste0("settings$", f),
+        loc,
         paste0(
-          "should be one of: ",
-          paste(SETTINGS_VALID[[f]], collapse = ", "),
-          ". Got: \"",
-          v,
-          "\"."
+          "Unknown survey setting: '",
+          set_name,
+          "'. It will be ignored or written as-is."
         )
       )
+      next
+    }
+
+    # If the setting has specific valid constraints
+    valid_spec <- spec$valid
+    if (!is.null(val) && !is.null(valid_spec)) {
+      ok <- tryCatch(
+        if (is.function(valid_spec)) {
+          isTRUE(valid_spec(val))
+        } else {
+          as.character(val) %in% as.character(valid_spec)
+        },
+        error = function(e) FALSE
+      )
+
+      if (!ok) {
+        add(
+          "warning",
+          loc,
+          paste0("Value \"", val, "\" is not valid for '", set_name, "'.")
+        )
+      }
     }
   }
 }

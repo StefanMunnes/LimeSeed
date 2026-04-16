@@ -1737,63 +1737,388 @@ resolve_question_type <- function(qst_code, qst_data) {
 
 
 # ══ Survey-level settings ═════════════════════════════════════════════════════
+#
+# Unified registry for survey settings, matching the structure of LS_Q_OPTIONS.
+# ?UNCERTAIN marks fields where exact valid codes might vary by LS version.
 
-SETTINGS_DEFAULTS <- list(
-  sid = 1,
-  gsid = 1,
-  admin = "",
-  adminemail = "",
-  anonymized = "Y",
-  faxto = "",
-  format = "G",
-  savetimings = "Y",
-  template = "vanilla",
-  language = "",
-  additional_languages = "",
-  datestamp = "Y",
-  usecookie = "N",
-  allowregister = "N",
-  allowsave = "N",
-  autonumber_start = 0,
-  autoredirect = "Y",
-  allowprev = "N",
-  printanswers = "N",
-  ipaddr = "N",
-  refurl = "N",
-  showsurveypolicynotice = 0,
-  publicstatistics = "N",
-  publicgraphs = "N",
-  listpublic = "N",
-  htmlemail = "Y",
-  sendconfirmation = "N",
-  tokenanswerspersistence = "N",
-  assessments = "N",
-  usecaptcha = "N",
-  usetokens = "N",
-  bounce_email = "",
-  emailresponseto = "",
-  emailnotificationto = "",
-  tokenlength = 15,
-  showxquestions = "N",
-  showgroupinfo = "X",
-  shownoanswer = "N",
-  showqnumcode = "X",
-  bounceprocessing = "N",
-  showwelcome = "Y",
-  showprogress = "Y",
-  questionindex = 0,
-  navigationdelay = 0,
-  nokeyboard = "N",
-  alloweditaftercompletion = "N",
-  googleanalyticsstyle = 0,
-  googleanalyticsapikey = ""
-)
+.is_num <- function(x) is.numeric(x) || grepl("^[0-9]+$", as.character(x))
 
-SETTINGS_VALID <- list(
-  format = c("G", "Q", "A"),
-  showgroupinfo = c("B", "D", "N", "X"),
-  showqnumcode = c("Y", "N", "X"),
-  questionindex = c(0, 1, 2)
+LS_SETTINGS <- list(
+  "sid" = list(
+    description = list(de = "Umfrage-ID.", en = "Survey ID."),
+    default = 1,
+    valid = .is_num
+  ),
+  "gsid" = list(
+    description = list(de = "Basis-Sprach-ID.", en = "Base language ID."),
+    default = 1,
+    valid = .is_num
+  ),
+  "admin" = list(
+    description = list(
+      de = "Name des Administrators.",
+      en = "Administrator name."
+    ),
+    default = "",
+    valid = NULL
+  ),
+  "adminemail" = list(
+    description = list(
+      de = "E-Mail des Administrators.",
+      en = "Administrator email."
+    ),
+    default = "",
+    valid = NULL
+  ),
+  "anonymized" = list(
+    description = list(
+      de = "Antworten anonymisieren (Y/N).",
+      en = "Anonymize responses (Y/N)."
+    ),
+    default = "Y",
+    valid = c("Y", "N")
+  ),
+  "faxto" = list(
+    description = list(de = "Faxnummer.", en = "Fax number."),
+    default = "",
+    valid = NULL
+  ),
+  "format" = list(
+    description = list(
+      de = "Umfrageformat (G = Gruppe für Gruppe, Q = Frage für Frage, A = Alles auf einer Seite).",
+      en = "Survey format (G = Group by group, Q = Question by question, A = All in one)."
+    ),
+    default = "G",
+    valid = c("G", "Q", "A")
+  ),
+  "savetimings" = list(
+    description = list(
+      de = "Zeitnahme speichern (Y/N).",
+      en = "Save timings (Y/N)."
+    ),
+    default = "Y",
+    valid = c("Y", "N")
+  ),
+  "template" = list(
+    description = list(
+      de = "Name des Umfrage-Themes (z.B. vanilla).",
+      en = "Survey theme name (e.g., vanilla)."
+    ),
+    default = "vanilla",
+    valid = NULL
+  ),
+  "language" = list(
+    description = list(
+      de = "Primärsprache der Umfrage.",
+      en = "Primary language of the survey."
+    ),
+    default = "",
+    valid = NULL
+  ),
+  "additional_languages" = list(
+    description = list(
+      de = "Zusätzliche Sprachen (als String).",
+      en = "Additional languages (as string)."
+    ),
+    default = "",
+    valid = NULL
+  ),
+  "datestamp" = list(
+    description = list(
+      de = "Datum/Zeitstempel speichern (Y/N).",
+      en = "Save datestamp (Y/N)."
+    ),
+    default = "Y",
+    valid = c("Y", "N")
+  ),
+  "usecookie" = list(
+    description = list(
+      de = "Cookie nutzen um wiederholte Teilnahme zu verhindern (Y/N).",
+      en = "Use cookie to prevent repeated participation (Y/N)."
+    ),
+    default = "N",
+    valid = c("Y", "N")
+  ),
+  "allowregister" = list(
+    description = list(
+      de = "Öffentliche Registrierung erlauben (Y/N).",
+      en = "Allow public registration (Y/N)."
+    ),
+    default = "N",
+    valid = c("Y", "N")
+  ),
+  "allowsave" = list(
+    description = list(
+      de = "Zwischenspeichern erlauben (Y/N).",
+      en = "Allow save and return later (Y/N)."
+    ),
+    default = "N",
+    valid = c("Y", "N")
+  ),
+  "autonumber_start" = list(
+    description = list(
+      de = "Startwert für automatische Nummerierung.",
+      en = "Start value for auto-numbering."
+    ),
+    default = 0,
+    valid = .is_num
+  ),
+  "autoredirect" = list(
+    description = list(
+      de = "Nach Abschluss automatisch weiterleiten (Y/N).",
+      en = "Auto-redirect after completion (Y/N)."
+    ),
+    default = "Y",
+    valid = c("Y", "N")
+  ),
+  "allowprev" = list(
+    description = list(
+      de = "Rückwärtsnavigation erlauben (Y/N).",
+      en = "Allow backward navigation (Y/N)."
+    ),
+    default = "N",
+    valid = c("Y", "N")
+  ),
+  "printanswers" = list(
+    description = list(
+      de = "Drucken der Antworten erlauben (Y/N).",
+      en = "Allow printing answers (Y/N)."
+    ),
+    default = "N",
+    valid = c("Y", "N")
+  ),
+  "ipaddr" = list(
+    description = list(
+      de = "IP-Adresse speichern (Y/N).",
+      en = "Save IP address (Y/N)."
+    ),
+    default = "N",
+    valid = c("Y", "N")
+  ),
+  "refurl" = list(
+    description = list(
+      de = "Referrer-URL speichern (Y/N).",
+      en = "Save referrer URL (Y/N)."
+    ),
+    default = "N",
+    valid = c("Y", "N")
+  ),
+  "showsurveypolicynotice" = list(
+    description = list(
+      de = "Datenschutzrichtlinie anzeigen (0, 1). ?UNCERTAIN.",
+      en = "Show survey policy notice (0, 1). ?UNCERTAIN."
+    ),
+    default = 0,
+    valid = c(0, 1)
+  ),
+  "publicstatistics" = list(
+    description = list(
+      de = "Öffentliche Statistiken aktivieren (Y/N).",
+      en = "Enable public statistics (Y/N)."
+    ),
+    default = "N",
+    valid = c("Y", "N")
+  ),
+  "publicgraphs" = list(
+    description = list(
+      de = "Öffentliche Grafiken aktivieren (Y/N).",
+      en = "Enable public graphs (Y/N)."
+    ),
+    default = "N",
+    valid = c("Y", "N")
+  ),
+  "listpublic" = list(
+    description = list(
+      de = "Umfrage öffentlich listen (Y/N).",
+      en = "List survey publicly (Y/N)."
+    ),
+    default = "N",
+    valid = c("Y", "N")
+  ),
+  "htmlemail" = list(
+    description = list(
+      de = "HTML-E-Mails verwenden (Y/N).",
+      en = "Use HTML emails (Y/N)."
+    ),
+    default = "Y",
+    valid = c("Y", "N")
+  ),
+  "sendconfirmation" = list(
+    description = list(
+      de = "Bestätigungs-E-Mail senden (Y/N).",
+      en = "Send confirmation email (Y/N)."
+    ),
+    default = "N",
+    valid = c("Y", "N")
+  ),
+  "tokenanswerspersistence" = list(
+    description = list(
+      de = "Token-basierte Antwortpersistenz (Y/N).",
+      en = "Token-based response persistence (Y/N)."
+    ),
+    default = "N",
+    valid = c("Y", "N")
+  ),
+  "assessments" = list(
+    description = list(
+      de = "Bewertungsmodus (Assessments) aktivieren (Y/N).",
+      en = "Enable assessments mode (Y/N)."
+    ),
+    default = "N",
+    valid = c("Y", "N")
+  ),
+  "usecaptcha" = list(
+    description = list(
+      de = "CAPTCHA verwenden. ?UNCERTAIN: Genaue Werte (A, B, C, N, Y).",
+      en = "Use CAPTCHA. ?UNCERTAIN: Exact values (A, B, C, N, Y)."
+    ),
+    default = "N",
+    valid = c("N", "Y", "A", "B", "C", "D", "X")
+  ),
+  "usetokens" = list(
+    description = list(
+      de = "Teilnehmer-Panel (Tokens) verwenden (Y/N).",
+      en = "Use participant panel (tokens) (Y/N)."
+    ),
+    default = "N",
+    valid = c("Y", "N")
+  ),
+  "bounce_email" = list(
+    description = list(
+      de = "E-Mail-Adresse für unzustellbare Nachrichten.",
+      en = "Bounce email address."
+    ),
+    default = "",
+    valid = NULL
+  ),
+  "emailresponseto" = list(
+    description = list(
+      de = "E-Mail für Antwortbenachrichtigungen.",
+      en = "Email for response notifications."
+    ),
+    default = "",
+    valid = NULL
+  ),
+  "emailnotificationto" = list(
+    description = list(
+      de = "E-Mail für detaillierte Antwortbenachrichtigungen.",
+      en = "Email for detailed response notifications."
+    ),
+    default = "",
+    valid = NULL
+  ),
+  "tokenlength" = list(
+    description = list(
+      de = "Länge des Zugangsschlüssels (Token).",
+      en = "Token length."
+    ),
+    default = 15,
+    valid = .is_num
+  ),
+  "showxquestions" = list(
+    description = list(
+      de = "Anzahl der Fragen anzeigen (Y/N).",
+      en = "Show 'There are X questions' (Y/N)."
+    ),
+    default = "N",
+    valid = c("Y", "N")
+  ),
+  "showgroupinfo" = list(
+    description = list(
+      de = "Gruppeninfo anzeigen (B=Beides, D=Beschreibung, N=Name, X=Verbergen).",
+      en = "Show group info (B=Both, D=Description, N=Name, X=Hide)."
+    ),
+    default = "X",
+    valid = c("B", "D", "N", "X")
+  ),
+  "shownoanswer" = list(
+    description = list(
+      de = "Option 'Keine Antwort' anzeigen (Y/N/C). ?UNCERTAIN: C = Admin Choice?",
+      en = "Show 'No answer' option (Y/N/C). ?UNCERTAIN: C = Admin Choice?"
+    ),
+    default = "N",
+    valid = c("Y", "N", "C")
+  ),
+  "showqnumcode" = list(
+    description = list(
+      de = "Fragenummer/Code anzeigen (Y=Nummer, N=Beides verbergen, X=Code). ?UNCERTAIN.",
+      en = "Show question number/code (Y=Number, N=Hide both, X=Code). ?UNCERTAIN."
+    ),
+    default = "X",
+    valid = c("Y", "N", "X")
+  ),
+  "bounceprocessing" = list(
+    description = list(
+      de = "Bounce-Verarbeitung aktivieren (Y/N).",
+      en = "Enable bounce processing (Y/N)."
+    ),
+    default = "N",
+    valid = c("Y", "N")
+  ),
+  "showwelcome" = list(
+    description = list(
+      de = "Willkommensbildschirm anzeigen (Y/N).",
+      en = "Show welcome screen (Y/N)."
+    ),
+    default = "Y",
+    valid = c("Y", "N")
+  ),
+  "showprogress" = list(
+    description = list(
+      de = "Fortschrittsbalken anzeigen (Y/N).",
+      en = "Show progress bar (Y/N)."
+    ),
+    default = "Y",
+    valid = c("Y", "N")
+  ),
+  "questionindex" = list(
+    description = list(
+      de = "Fragenindex anzeigen (0=Deaktiviert, 1=Inkrementell, 2=Voll).",
+      en = "Show question index (0=Disabled, 1=Incremental, 2=Full)."
+    ),
+    default = 0,
+    valid = c(0, 1, 2)
+  ),
+  "navigationdelay" = list(
+    description = list(
+      de = "Navigationsverzögerung (Sekunden).",
+      en = "Navigation delay (seconds)."
+    ),
+    default = 0,
+    valid = .is_num
+  ),
+  "nokeyboard" = list(
+    description = list(
+      de = "Tastaturnavigation deaktivieren (Y/N).",
+      en = "Disable keyboard navigation (Y/N)."
+    ),
+    default = "N",
+    valid = c("Y", "N")
+  ),
+  "alloweditaftercompletion" = list(
+    description = list(
+      de = "Bearbeiten nach Abschluss erlauben (Y/N).",
+      en = "Allow editing after completion (Y/N)."
+    ),
+    default = "N",
+    valid = c("Y", "N")
+  ),
+  "googleanalyticsstyle" = list(
+    description = list(
+      de = "Google Analytics Stil (0, 1, 2). ?UNCERTAIN.",
+      en = "Google Analytics style (0, 1, 2). ?UNCERTAIN."
+    ),
+    default = 0,
+    valid = c(0, 1, 2)
+  ),
+  "googleanalyticsapikey" = list(
+    description = list(
+      de = "Google Analytics Tracking-ID.",
+      en = "Google Analytics Tracking ID."
+    ),
+    default = "",
+    valid = NULL
+  )
 )
 
 
