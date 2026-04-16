@@ -8,7 +8,7 @@ Avoid tedious and error-prone manual clicking through the web interface. Edit yo
 
 --- 
 
-## Core Concept
+## Core Concept: Seed
 
 At the heart of LimeSeed is the **seed** — a structured survey definition that fully describes your questionnaire in a simple and clean format.
 
@@ -53,7 +53,7 @@ For more control, each stage can also be used independently to inspect, modify, 
 flowchart LR
 
     %% ── Inputs ─────────────────────────────
-    A(["YAML\nfile(s)/path"])
+    A(["YAML file(s)"])
     B(["R List"])
 
     A --> C
@@ -265,4 +265,50 @@ quota:
    urls:
      en: 'https://example.com/closed'
      de: 'https://example.com/geschlossen'
+```
+
+---
+
+## Discover: Helper Functions
+
+LimeSeed includes helper functions to explore available **survey settings**, **question types**, **options**, as well as their valid/default values directly from R. These are especially useful while designing surveys, as they allow you to quickly look up how LimeSurvey features map to YAML fields.
+
+The helpers are designed to work well with R’s native pipe (`|>`), enabling a natural workflow from discovery to implementation.
+
+### Survey Settings
+
+Get defaults, valid values, and  description for one or multiple survey settings:
+
+```r
+lsh_settings()         # show "all" settings per default
+lsh_settings("refurl") # show specific setting if name matches
+lsh_settings("mail")   # show all settings matching name or description text
+```
+
+### Question types
+
+Get compact or detailed information about one or multiple question types:
+
+```r
+lsh_types()       # show "all" question types per default
+lsh_types("F")    # check for specific question type by known code
+lsh_types("text") # search for all types matching label or description text
+lsh_types(c("array", "numerical input")) # search for multiple types at once
+lsh_types("F", detailed = TRUE) # show all available information for choosen question types
+```
+
+### Question options
+
+Explore all options or search for specific ones across all or selected question types:
+
+```r
+lsh_options() # Browse all options
+lsh_options("F") # options for array type
+lsh_options(c("F", "N")) # union of options for multiple types
+
+lsh_options(search = "validation") # Search by keyword
+
+lsh_options("F", search = "validation") # Combine type + search
+
+lsh_types("array") |> lsh_options() # Pipe directly from type discovery
 ```
