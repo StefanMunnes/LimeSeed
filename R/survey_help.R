@@ -1,742 +1,579 @@
-# survey_help.R — Documentation and scaffold helpers for LimeSeed surveys
+# limesurvey_help.R — Discovery helpers for LimeSurvey survey authoring
 # ─────────────────────────────────────────────────────────────────────────────
 #
-# Naming convention
-# ─────────────────
-#   Info / discovery  (print overview + return data.frame invisibly):
-#     ls_settings()        — survey-level settings with defaults + valid values
-#     ls_questions()       — question types: codes, labels, requirements, options
-#     ls_options()         — attribute options for one or more question types
+# Prefix convention:
+#   lsh_   public discovery functions   (this file)
+#   lst_   template generators          (future file)
 #
-#   Scaffold generators  (print YAML + return character vector invisibly):
-#     ls_settings_build()  — copy-paste `settings:` block
-#     ls_question_build()  — copy-paste question block(s) for one or more types
-#     ls_quota_build()     — copy-paste `quota:` entry
+# Public API:
+#   lsh_types(type, compact, lang)    describe question types
+#   lsh_options(types, search, lang)  describe attribute options
 #
-# All print output goes through cat() so it can be captured via
-# capture.output() or written to a file with sink().
+# Pipe workflow:
+#   lsh_types("F")                      one type, full detail
+#   lsh_types(c("F", "N"))             several types
+#   lsh_types("array")                  label / search term
+#   lsh_types("all", compact = TRUE)    compact table of all types
+#   lsh_types(c("F", "N")) |> lsh_options()   options for F and N
+#   lsh_options(search = "time")        search all options
 #
-# Requires: survey_defs.R  (LS_QUESTION_TYPES, LS_Q_OPTIONS, LS_TYPES,
-#           LS_LABEL_TO_CODE, LS_ALL_TYPE_CODES, SETTINGS_DEFAULTS,
-#           SETTINGS_VALID, Q_CORE_FIELDS, LS_QUOTA_OPTIONS)
+# Requires: survey_defs.R (LS_QUESTION_TYPES, LS_Q_OPTIONS, LS_TYPES,
+#           LS_LABEL_TO_CODE, LS_ALL_TYPE_CODES)
 
+# ══ Internal utilities ════════════════════════════════════════════════════════
 
-# ══ Internal helpers ══════════════════════════════════════════════════════════
+# Horizontal rule
+.lsh_rule <- function(w = 60) strrep("\u2500", w)
 
-# Accumulate printed lines in a buffer while cat()-ing them immediately.
-# Returns a list with p() (print one line) and get() (retrieve all lines).
-.ls_buf <- function() {
-  buf <- character(0)
-  list(
-    p   = function(x = "") { buf <<- c(buf, x); cat(x, "\n", sep = "") },
-    get = function() buf
-  )
+# Left-aligned fixed-width column
+.lsh_pad <- function(x, w) formatC(as.character(x), width = -w, flag = "-")
+
+# Truncate string to n chars, appending … if cut
+.lsh_trunc <- function(x, n) {
+  if (nchar(x) > n) paste0(substr(x, 1, n - 1), "\u2026") else x
 }
 
-# Resolve the `type` argument → unique character vector of LS type codes.
-# Accepts: "all", a single code/label, or a character vector of codes/labels.
-.ls_resolve_types <- function(type) {
-  if (identical(type, "all")) return(LS_ALL_TYPE_CODES)
-  codes <- character(0)
-  for (t in as.character(type)) {
-    t_low <- tolower(trimws(t))
-    if (t %in% LS_ALL_TYPE_CODES) {
-      codes <- c(codes, t)
-    } else if (t_low %in% names(LS_LABEL_TO_CODE)) {
-      codes <- c(codes, LS_LABEL_TO_CODE[[t_low]])
+# Format a valid-values spec into a readable string
+.lsh_fmt_valid <- function(v, max_len = 20) {
+  if (is.null(v)) {
+    return("any")
+  }
+  if (is.function(v)) {
+    return("(see docs)")
+  }
+  s <- paste(as.character(v), collapse = " | ")
+  .lsh_trunc(s, max_len)
+}
+
+# Extract language-aware description from a type or option spec.
+# Falls back to English, then to "".
+.lsh_desc <- function(spec, lang = "en") {
+  d <- spec$description
+  if (is.null(d)) {
+    return("")
+  }
+  trimws(as.character(d[[lang]] %||% d[["en"]] %||% ""))
+}
+
+# Wrap a character vector of items into lines no wider than `width`.
+# All continuation lines are indented to the same column as the first item.
+.lsh_wrap <- function(items, prefix, sep = ", ", width = 80) {
+  if (length(items) == 0) {
+    return(prefix)
+  }
+  indent <- strrep(" ", nchar(prefix))
+  cur <- prefix
+  lines <- character(0)
+  for (i in seq_along(items)) {
+    chunk <- if (i < length(items)) paste0(items[[i]], sep) else items[[i]]
+    if (nchar(cur) + nchar(chunk) > width && nchar(cur) > nchar(prefix)) {
+      lines <- c(lines, cur)
+      cur <- paste0(indent, chunk)
     } else {
-      warning(
-        "'", t, "' is not a known type code or label — skipped.\n",
-        "  Use ls_questions() to browse all available types.",
-        call. = FALSE
-      )
+      cur <- paste0(cur, chunk)
     }
+  }
+  paste(c(lines, cur), collapse = "\n")
+}
+
+
+# ══ S3 class: lsh_types_result ═══════════════════════════════════════════════
+#
+# A character vector of resolved LS type codes with a lightweight print method.
+#
+# Design rationale for the compact print:
+#   When lsh_types() is called, the full formatted output is printed immediately
+#   — that is the intended discovery moment.  If the user stores the result
+#   (`x <- lsh_types("array")`), typing `x` in the console should show a quick
+#   reminder of what is stored, not re-flood the console with the same output.
+#   The one-liner also hints at the two natural next steps: pass to lsh_types()
+#   for full detail, or pipe into lsh_options() for option lookup.
+
+.lsh_types_result <- function(codes) {
+  structure(codes, class = c("lsh_types_result", "character"))
+}
+
+#' @export
+print.lsh_types_result <- function(x, ...) {
+  codes <- as.character(x)
+  if (length(codes) == 0) {
+    cat("<lsh_types_result: (empty)>\n")
+    return(invisible(x))
+  }
+  labels <- vapply(
+    codes,
+    function(c) LS_QUESTION_TYPES[[c]]$labels[[1L]],
+    character(1L)
+  )
+  entries <- paste(sprintf("[%s] %s", codes, labels), collapse = "  ")
+  cat(sprintf("<lsh_types_result [%d]>  %s\n", length(codes), entries))
+  cat(
+    "  \u2192 lsh_types(x) for full details  |  x |> lsh_options() for options\n"
+  )
+  invisible(x)
+}
+
+
+# ══ Type resolution ═══════════════════════════════════════════════════════════
+#
+# Three-stage resolution applied per token:
+#   1. Exact LS type code     ("F", "L", ":")
+#   2. Exact label match      ("array", "radio") — case-insensitive
+#   3. Substring search       across all labels and en/de descriptions
+
+.lsh_resolve_types <- function(type, quiet = FALSE) {
+  if (identical(type, "all")) {
+    return(LS_ALL_TYPE_CODES)
+  }
+
+  codes <- character(0)
+  not_found <- character(0)
+
+  for (t in as.character(type)) {
+    t_trim <- trimws(t)
+    t_low <- tolower(t_trim)
+
+    if (t_trim %in% LS_ALL_TYPE_CODES) {
+      codes <- c(codes, t_trim)
+      next
+    }
+    hits <- Filter(
+      function(code) {
+        spec <- LS_QUESTION_TYPES[[code]]
+        any(grepl(
+          t_low,
+          tolower(c(
+            spec$labels,
+            spec$description$en %||% "",
+            spec$description$de %||% ""
+          )),
+          fixed = TRUE
+        ))
+      },
+      LS_ALL_TYPE_CODES
+    )
+
+    if (length(hits) > 0) {
+      codes <- c(codes, hits)
+    } else {
+      not_found <- c(not_found, t_trim)
+    }
+  }
+
+  if (!quiet && length(not_found) > 0) {
+    warning(
+      "No type found for: ",
+      paste(sprintf("'%s'", not_found), collapse = ", "),
+      ".\nUse lsh_types() to browse all available types.",
+      call. = FALSE
+    )
   }
   unique(codes)
 }
 
-# Compact display of a valid-values spec.
-.ls_fmt_valid <- function(v) {
-  if (is.null(v))     return("any")
-  if (is.function(v)) return("(see docs)")
-  s <- as.character(v)
-  if (length(s) > 8) paste0(paste(s[1:8], collapse = " | "), " | \u2026")
-  else               paste(s, collapse = " | ")
-}
 
-# Left-pad string to exactly w characters.
-.lrpad <- function(x, w) formatC(as.character(x), width = -w, flag = "-")
+# ══ lsh_types() — print helpers ═══════════════════════════════════════════════
 
-# Horizontal rule of width w using char.
-.rule <- function(w = 68, char = "\u2500") strrep(char, w)
+# Print the full detail block for one question type.
+.lsh_one_type <- function(code, lang) {
+  spec <- LS_QUESTION_TYPES[[code]]
+  type_spec <- LS_TYPES[[code]]
+  desc <- .lsh_desc(spec, lang)
 
-# n levels of YAML indentation (2 spaces each).
-.ind <- function(n) strrep("  ", n)
+  # Header: [code]  primary label  —  description (language-aware)
+  desc_part <- if (nchar(desc) > 0) paste0("  \u2014  ", desc) else ""
+  cat("\n[", code, "]  ", spec$labels[[1L]], desc_part, "\n", sep = "")
 
-# One YAML line: <indent><key>: <val>  # <comment>
-.yl <- function(n, key, val = NULL, comment = NULL) {
-  core <- paste0(.ind(n), key, if (!is.null(val)) paste0(": ", val) else ":")
-  if (!is.null(comment)) core <- paste0(core, "  # ", comment)
-  core
-}
+  # All labels on one line (wrapped if long)
+  cat(.lsh_wrap(spec$labels, prefix = "  Labels  : ", sep = " | "), "\n")
 
-# Wrap x in single-quotes (YAML scalar quoting).
-.yq <- function(x) paste0("'", x, "'")
-
-# Canonical (first) label for a type code.
-.type_label <- function(code) LS_QUESTION_TYPES[[code]]$labels[[1]]
-
-
-# ══ ls_settings ══════════════════════════════════════════════════════════════
-
-#' List available LimeSurvey survey settings
-#'
-#' Prints all settings keys recognised by [build_lsdf()] with their package
-#' defaults.  When `detail = TRUE`, constrained fields also show their allowed
-#' values.  Use `search` to filter by a substring of the field name.
-#'
-#' @param detail Logical. Show valid-value constraints for each field
-#'   (default `FALSE`).
-#' @param search Character. Optional case-insensitive substring filter on field
-#'   names.
-#' @return Invisibly, a `data.frame` with columns `field`, `default`, `valid`.
-#' @seealso [ls_settings_build()]
-#' @export
-#'
-#' @examples
-#' ls_settings()
-#' ls_settings(detail = TRUE)
-#' ls_settings(search = "email")
-ls_settings <- function(detail = FALSE, search = NULL) {
-  buf <- .ls_buf()
-  p   <- buf$p
-
-  fields <- names(SETTINGS_DEFAULTS)
-
-  if (!is.null(search)) {
-    fields <- fields[grepl(search, fields, ignore.case = TRUE)]
-    if (length(fields) == 0) {
-      p(paste0("# No settings match '", search, "'."))
-      return(invisible(
-        data.frame(field = character(), default = character(), valid = character(),
-                   stringsAsFactors = FALSE)
-      ))
-    }
+  req <- if (length(type_spec$requires) == 0L) {
+    "(none)"
+  } else {
+    paste(type_spec$requires, collapse = " + ")
   }
+  cat("  Requires: ", req, "\n", sep = "")
+  cat("  Quota   : ", if (type_spec$quota) "YES" else "no", "\n", sep = "")
 
-  w_field <- max(nchar(fields)) + 2L
-  w_def   <- 18L
-
-  p("# LimeSurvey Survey Settings")
-  p(paste0("# ", .rule()))
-  p("# Use these keys inside the `settings:` block of your LimeSeed YAML.")
-  p("# Required keys not listed here: language, titles")
-  p(paste0("# ", .rule()))
-  p()
-
-  hdr <- paste0(
-    "  ", .lrpad("field", w_field),
-    .lrpad("default", w_def),
-    if (detail) "valid values" else ""
-  )
-  p(hdr)
-  p(paste0("  ", .rule(nchar(trimws(hdr)) + 4)))
-
-  rows <- lapply(fields, function(field) {
-    dflt      <- SETTINGS_DEFAULTS[[field]]
-    valid     <- SETTINGS_VALID[[field]]
-    dflt_str  <- if (is.null(dflt) || identical(dflt, "")) '""' else paste0('"', dflt, '"')
-    valid_str <- if (!is.null(valid)) paste(valid, collapse = " | ") else ""
-    valid_col <- if (detail && !is.null(valid)) paste0("[", valid_str, "]") else ""
-
-    p(paste0("  ", .lrpad(field, w_field), .lrpad(dflt_str, w_def), valid_col))
-
-    data.frame(field = field, default = dflt_str, valid = valid_str,
-               stringsAsFactors = FALSE)
-  })
-
-  p()
-  p("# Tip: ls_settings_build() generates a YAML scaffold ready to paste.")
-
-  invisible(do.call(rbind, rows))
-}
-
-
-# ══ ls_questions ══════════════════════════════════════════════════════════════
-
-#' List available LimeSurvey question types
-#'
-#' Prints an overview of all (or selected) question types: their LS type code,
-#' primary label, additional label synonyms, structural requirements, and
-#' whether the type supports quota membership.
-#'
-#' When `detail = TRUE`, each type entry is followed by a table of all
-#' applicable attribute options with defaults and valid values.
-#'
-#' @param type Character. `"all"` (default), a single type code or label, or a
-#'   character vector of codes/labels.
-#' @param detail Logical. If `TRUE`, also print applicable options per type.
-#' @param search Character. Optional case-insensitive substring filter applied
-#'   to type codes, labels, and descriptions.
-#' @return Invisibly, a `data.frame` with columns `code`, `label`, `labels`,
-#'   `requires`, `quota`, `n_options`.
-#' @seealso [ls_options()], [ls_question_build()]
-#' @export
-#'
-#' @examples
-#' ls_questions()
-#' ls_questions("L")
-#' ls_questions(c("L", "M", "F"), detail = TRUE)
-#' ls_questions(search = "array")
-ls_questions <- function(type = "all", detail = FALSE, search = NULL) {
-  buf <- .ls_buf()
-  p   <- buf$p
-
-  codes <- .ls_resolve_types(type)
-
-  if (!is.null(search)) {
-    codes <- Filter(function(code) {
-      spec     <- LS_QUESTION_TYPES[[code]]
-      haystack <- c(code, spec$labels,
-                    spec$description$en %||% "",
-                    spec$description$de %||% "")
-      any(grepl(search, haystack, ignore.case = TRUE))
-    }, codes)
-    if (length(codes) == 0) {
-      p(paste0("# No question types match '", search, "'."))
-      return(invisible(data.frame()))
-    }
-  }
-
-  p("# LimeSurvey Question Types")
-  p(paste0("# ", .rule()))
-
-  # ── compact table ────────────────────────────────────────────────────────
-  if (!detail) {
-    w_code  <-  6L
-    w_label <- 28L
-    w_req   <- 28L
-
-    hdr <- paste0(
-      .lrpad("Code", w_code),
-      .lrpad("Primary label", w_label),
-      .lrpad("Requires", w_req),
-      "Quota   Aliases"
+  opts <- names(type_spec$options)
+  if (length(opts) > 0L) {
+    cat(
+      .lsh_wrap(opts, prefix = sprintf("  Options : %d \u2014 ", length(opts))),
+      "\n"
     )
-    p(hdr)
-    p(.rule(nchar(hdr)))
-
-    rows <- lapply(codes, function(code) {
-      spec    <- LS_QUESTION_TYPES[[code]]
-      label   <- spec$labels[[1]]
-      n_alias <- length(spec$labels) - 1L
-      req_str <- if (length(spec$requires %||% character(0)) == 0) "(none)"
-                 else paste(spec$requires, collapse = " + ")
-      quota   <- if (isTRUE(spec$quota)) "YES    " else "no     "
-
-      p(paste0(
-        .lrpad(paste0("[", code, "]"), w_code),
-        .lrpad(label, w_label),
-        .lrpad(req_str, w_req),
-        quota,
-        if (n_alias > 0) paste0("+", n_alias) else ""
-      ))
-
-      data.frame(code = code, label = label,
-                 labels   = paste(spec$labels, collapse = " | "),
-                 requires = req_str,
-                 quota    = isTRUE(spec$quota),
-                 n_options = length(LS_TYPES[[code]]$options),
-                 stringsAsFactors = FALSE)
-    })
-
-    p()
-    p("# Use ls_questions(detail = TRUE) or ls_options('<code>') for attribute details.")
-    p("# Use ls_question_build('<code>') to generate a YAML scaffold.")
-
-  # ── detailed view — one block per type ──────────────────────────────────
   } else {
-    rows <- lapply(codes, function(code) {
-      spec      <- LS_QUESTION_TYPES[[code]]
-      type_spec <- LS_TYPES[[code]]
-      label     <- spec$labels[[1]]
-      req_str   <- if (length(type_spec$requires) == 0) "(none)"
-                   else paste(type_spec$requires, collapse = " + ")
-      opts      <- type_spec$options
-
-      dash_len  <- max(2L, 60L - nchar(label) - nchar(code) - 7L)
-      p()
-      p(paste0("[", code, "] ", label, "  ", .rule(dash_len)))
-      p(paste0("  Labels   : ", paste(spec$labels, collapse = " | ")))
-      p(paste0("  Requires : ", req_str))
-      p(paste0("  Quota    : ", if (type_spec$quota) "YES" else "no"))
-      if (!is.null(spec$description$en))
-        p(paste0("  Info     : ", spec$description$en))
-
-      if (length(opts) == 0) {
-        p("  Options  : (none beyond core fields)")
-      } else {
-        p(paste0("  Options (", length(opts), "):"))
-        w_opt <- min(30L, max(nchar(names(opts)))) + 2L
-        for (opt_name in names(opts)) {
-          opt      <- opts[[opt_name]]
-          dflt_str <- if (!is.null(opt$default)) paste0("default=", .yq(opt$default))
-                      else "no default"
-          valid_str <- .ls_fmt_valid(opt$valid)
-          lang_tag  <- if (isTRUE(opt$language)) " \u2605" else ""
-          p(paste0("    ", .lrpad(opt_name, w_opt),
-                   .lrpad(dflt_str, 22L), "valid: ", valid_str, lang_tag))
-        }
-      }
-
-      data.frame(code = code, label = label,
-                 labels   = paste(spec$labels, collapse = " | "),
-                 requires = req_str,
-                 quota    = type_spec$quota,
-                 n_options = length(opts),
-                 stringsAsFactors = FALSE)
-    })
-
-    p()
-    p(paste0("# ", .rule()))
-    p("# \u2605 = multilingual field: provide as a named list per language")
-    p("# Use ls_question_build('<code>') to generate a YAML scaffold.")
+    cat("  Options : (none beyond core fields)\n")
   }
-
-  invisible(do.call(rbind, rows))
 }
 
-
-# ══ ls_options ════════════════════════════════════════════════════════════════
-
-#' List attribute options for one or more question types
-#'
-#' Prints the attribute keys applicable to the given type(s) — the fields
-#' that can be set alongside `type:` and `questionTexts:` in a question block.
-#' Each entry shows its default value (if any), allowed values, and whether it
-#' is a multilingual field.
-#'
-#' @param type Character. A type code or label, a character vector, or `"all"`
-#'   to show the full option registry.
-#' @param search Character. Optional case-insensitive substring filter on option
-#'   names.
-#' @return Invisibly, a `data.frame` with columns `option`, `applies_to`,
-#'   `default`, `valid`, `multilingual`.
-#' @seealso [ls_questions()], [ls_question_build()]
-#' @export
-#'
-#' @examples
-#' ls_options("L")
-#' ls_options(c("S", "T", "U"))
-#' ls_options(search = "time_limit")
-ls_options <- function(type = "all", search = NULL) {
-  buf <- .ls_buf()
-  p   <- buf$p
-
-  codes <- .ls_resolve_types(type)
-
-  # Collect the union of applicable options for the selected types
-  if (identical(type, "all")) {
-    all_opts <- LS_Q_OPTIONS
+# Detail view: one or a few specific types
+.lsh_print_types_detail <- function(codes, lang) {
+  n <- length(codes)
+  header <- if (n == 1L) {
+    "LimeSurvey Question Type"
   } else {
-    all_opts <- list()
-    for (code in codes) {
-      for (nm in names(LS_TYPES[[code]]$options)) {
-        if (is.null(all_opts[[nm]])) all_opts[[nm]] <- LS_Q_OPTIONS[[nm]]
-      }
+    sprintf("LimeSurvey Question Types  [%d matched]", n)
+  }
+  cat("\n", header, "\n", .lsh_rule(nchar(header)), "\n", sep = "")
+  for (code in codes) {
+    .lsh_one_type(code, lang)
+  }
+  cat("\n", .lsh_rule(50L), "\n", sep = "")
+  cat("Pipe into lsh_options() to see attribute options.\n\n")
+}
+
+# Grouped view: all types organised by category
+.lsh_print_types_grouped <- function(codes, lang) {
+  cat("\nAll LimeSurvey Question Types\n", .lsh_rule(50L), "\n", sep = "")
+
+  # Any code not covered by LS_TYPE_GROUPS lands in "Other"
+  ungrouped <- setdiff(codes, unlist(LS_TYPE_GROUPS, use.names = FALSE))
+  groups <- if (length(ungrouped) > 0L) {
+    c(LS_TYPE_GROUPS, list(Other = ungrouped))
+  } else {
+    LS_TYPE_GROUPS
+  }
+
+  for (group_name in names(groups)) {
+    group_codes <- intersect(groups[[group_name]], codes)
+    if (length(group_codes) == 0L) {
+      next
+    }
+    cat(
+      "\n\u2500\u2500 ",
+      group_name,
+      " ",
+      .lsh_rule(max(2L, 40L - nchar(group_name))),
+      "\n",
+      sep = ""
+    )
+    for (code in group_codes) {
+      .lsh_one_type(code, lang)
     }
   }
 
-  if (!is.null(search)) {
-    all_opts <- all_opts[grepl(search, names(all_opts), ignore.case = TRUE)]
-    if (length(all_opts) == 0) {
-      p(paste0("# No options match '", search, "' for the selected type(s)."))
-      return(invisible(data.frame()))
-    }
-  }
-
-  type_str <- if (identical(type, "all")) "all types"
-              else paste(vapply(codes, .type_label, character(1)), collapse = ", ")
-
-  p(paste0("# Question Attribute Options \u2014 ", type_str))
-  p(paste0("# ", .rule()))
-  p("# These keys can be added inside any matching question block in your YAML.")
-  p()
-
-  w_opt  <- min(34L, max(nchar(names(all_opts)))) + 2L
-  w_dflt <- 16L
-
-  hdr <- paste0(.lrpad("option", w_opt), .lrpad("default", w_dflt), "valid values")
-  p(hdr)
-  p(.rule(nchar(hdr)))
-
-  rows <- lapply(names(all_opts), function(opt_name) {
-    opt       <- all_opts[[opt_name]]
-    dflt_str  <- if (!is.null(opt$default)) .yq(opt$default) else "(none)"
-    valid_str <- .ls_fmt_valid(opt$valid)
-    lang_tag  <- if (isTRUE(opt$language)) " \u2605" else ""
-    applies   <- if (is.null(opt$ls_type)) "all" else paste(opt$ls_type, collapse = " ")
-
-    p(paste0(.lrpad(opt_name, w_opt), .lrpad(dflt_str, w_dflt), valid_str, lang_tag))
-
-    data.frame(option = opt_name, applies_to = applies,
-               default = dflt_str, valid = valid_str,
-               multilingual = isTRUE(opt$language),
-               stringsAsFactors = FALSE)
-  })
-
-  p()
-  p("# \u2605 = multilingual: supply as a named list  e.g.  field: {en: '...', de: '...'}")
-  if (!identical(type, "all"))
-    p("# Tip: ls_options() without arguments shows the full registry.")
-
-  invisible(do.call(rbind, rows))
+  cat("\n", .lsh_rule(50L), "\n", sep = "")
+  cat("Pipe into lsh_options() to see attribute options.\n\n")
 }
 
+# Compact view: one row per type — code | primary label | description
+# When all types are shown, group headers are printed before each category.
+.lsh_print_types_compact <- function(codes, lang) {
+  w_code <- 6L
+  w_label <- 28L
+  is_all <- setequal(codes, LS_ALL_TYPE_CODES)
 
-# ══ ls_question_build ═════════════════════════════════════════════════════════
+  cat("LimeSurvey Question Types\n", .lsh_rule(70L), "\n", sep = "")
+  cat(.lsh_pad("Code", w_code), .lsh_pad("Label", w_label), "Description\n")
+  cat(.lsh_rule(70L), "\n")
 
-#' Generate a copy-paste YAML scaffold for one or more question types
-#'
-#' Prints a ready-to-use YAML skeleton that can be pasted directly into the
-#' `structure:` \u203a `<GroupCode>:` block of a LimeSeed YAML file.  Each
-#' scaffold is preceded by a short comment describing the type and its requirements.
-#'
-#' @param type Character. A type code or label, a character vector, or `"all"`
-#'   to generate scaffolds for every registered type.
-#' @param options Character. Controls the breadth of included fields:
-#'   \describe{
-#'     \item{`"required"`}{`type` + `questionTexts` + structural fields
-#'       (`answerOptions` / `subquestions`) as required by the type.}
-#'     \item{`"defaults"`}{Everything in `"required"` plus the most commonly
-#'       set core fields with their default values (`mandatory`, `other`,
-#'       `relevance`).}
-#'     \item{`"all"`}{Everything in `"defaults"` plus every applicable
-#'       type-specific attribute option, commented out with its default value
-#'       and valid values for easy discovery.}
-#'   }
-#' @param langs Character vector of language codes for multilingual output
-#'   (e.g. `c("en", "de")`), or `NULL` for single-language placeholders.
-#' @param code Character. Placeholder question code in the scaffold
-#'   (default `"QCODE"`).  When multiple types are requested, the type code is
-#'   appended automatically (e.g. `QCODE_L`, `QCODE_M`).
-#' @return Invisibly, a character vector of the printed YAML lines.
-#' @seealso [ls_questions()], [ls_options()], [ls_settings_build()]
-#' @export
-#'
-#' @examples
-#' # Single type — minimal scaffold
-#' ls_question_build("L")
-#'
-#' # Single type — all options shown (commented)
-#' ls_question_build("L", options = "all")
-#'
-#' # Multilingual scaffold
-#' ls_question_build("L", langs = c("en", "de"))
-#'
-#' # Multiple types at once
-#' ls_question_build(c("S", "L", "M", "F"))
-#'
-#' # Capture output to a file
-#' lines <- capture.output(ls_question_build("F", options = "defaults", langs = c("en", "de")))
-#' writeLines(lines, "question_scaffold.yaml")
-ls_question_build <- function(
-  type    = "all",
-  options = "required",
-  langs   = NULL,
-  code    = "QCODE"
-) {
-  options <- match.arg(options, c("required", "defaults", "all"))
-  codes   <- .ls_resolve_types(type)
-
-  if (length(codes) == 0) {
-    message("No valid types to scaffold.")
-    return(invisible(character(0)))
+  .one_compact_row <- function(code) {
+    spec <- LS_QUESTION_TYPES[[code]]
+    desc <- .lsh_trunc(.lsh_desc(spec, lang), 40L)
+    cat(
+      .lsh_pad(sprintf("[%s]", code), w_code),
+      .lsh_pad(spec$labels[[1L]], w_label),
+      desc,
+      "\n"
+    )
   }
 
-  buf <- .ls_buf()
-  p   <- buf$p
-
-  multilang   <- !is.null(langs) && length(langs) > 1
-  multi_types <- length(codes) > 1
-
-  for (type_code in codes) {
-    spec      <- LS_QUESTION_TYPES[[type_code]]
-    type_spec <- LS_TYPES[[type_code]]
-    label     <- spec$labels[[1]]
-    requires  <- type_spec$requires
-    req_str   <- if (length(requires) == 0) "(none)" else paste(requires, collapse = " + ")
-
-    # ── type header comment ─────────────────────────────────────────────────
-    p()
-    p(paste0("# [", type_code, "] ", label))
-    p(paste0("#    Requires : ", req_str,
-             "   |   Quota : ", if (type_spec$quota) "YES" else "no"))
-    if (!is.null(spec$description$en))
-      p(paste0("#    ", spec$description$en))
-    p(paste0("#    Synonyms : ", paste(spec$labels, collapse = " | ")))
-
-    # ── question code ────────────────────────────────────────────────────────
-    # Sanitise the code: replace characters invalid in YAML plain scalars
-    qcode <- if (multi_types) paste0(code, "_", type_code) else code
-    qcode <- gsub("[^A-Za-z0-9_]", "X", qcode)   # e.g. "!" → "X"
-    p(paste0(qcode, ":"))
-
-    # ── type ─────────────────────────────────────────────────────────────────
-    p(.yl(1, "type", .yq(label)))
-
-    # ── questionTexts ─────────────────────────────────────────────────────────
-    if (multilang) {
-      p(.yl(1, "questionTexts"))
-      for (lang in langs)
-        p(.yl(2, lang, .yq(paste0("Your question text? (", lang, ")"))))
+  if (is_all) {
+    ungrouped <- setdiff(codes, unlist(LS_TYPE_GROUPS, use.names = FALSE))
+    groups <- if (length(ungrouped) > 0L) {
+      c(LS_TYPE_GROUPS, list(Other = ungrouped))
     } else {
-      p(.yl(1, "questionTexts", .yq("Your question text here?")))
+      LS_TYPE_GROUPS
     }
-
-    # ── helpTexts (shown only in "all" mode) ─────────────────────────────────
-    if (options == "all") {
-      if (multilang) {
-        p(paste0(.ind(1), "# helpTexts:"))
-        for (lang in langs)
-          p(paste0(.ind(2), "# ", lang, ": '(optional tooltip text)'"))
-      } else {
-        p(paste0(.ind(1), "# helpTexts: '(optional tooltip text)'"))
+    for (group_name in names(groups)) {
+      group_codes <- intersect(groups[[group_name]], codes)
+      if (length(group_codes) == 0L) {
+        next
+      }
+      cat("\n  # ", group_name, "\n", sep = "")
+      for (code in group_codes) {
+        .one_compact_row(code)
       }
     }
-
-    # ── core fields added in "defaults" and "all" modes ───────────────────────
-    if (options %in% c("defaults", "all")) {
-      p(.yl(1, "mandatory", .yq("N"), "Y | N | S(oft)"))
-      p(.yl(1, "relevance", .yq("1"), "ExpressionScript condition — 1 = always show"))
-
-      if ("other" %in% names(type_spec$options))
-        p(.yl(1, "other", .yq("N"), "Y | N — enable a free-text 'Other' option"))
-    }
-
-    # ── subquestions (required by the type) ────────────────────────────────────
-    if ("subquestions" %in% requires) {
-      p(.yl(1, "subquestions"))
-      for (i in 1:2) {
-        sq <- paste0("SQ", i)
-        if (multilang) {
-          p(.yl(2, sq))
-          p(.yl(3, "subquestionTexts"))
-          for (lang in langs)
-            p(.yl(4, lang, .yq(paste0("Subquestion ", i, " (", lang, ")"))))
-        } else {
-          p(.yl(2, sq, .yq(paste0("Subquestion ", i))))
-        }
-      }
-    }
-
-    # ── answerOptions (required by the type) ────────────────────────────────────
-    if ("answerOptions" %in% requires) {
-      p(.yl(1, "answerOptions"))
-      n_opts <- switch(type_code, "1" = 2L, ";" = 2L, ":" = 2L, "H" = 2L, 3L)
-
-      for (i in seq_len(n_opts)) {
-        a_code <- paste0("A", i)
-        if (multilang) {
-          p(.yl(2, a_code))
-          p(.yl(3, "optionTexts"))
-          for (lang in langs)
-            p(.yl(4, lang, .yq(paste0("Option ", i, " (", lang, ")"))))
-        } else {
-          p(.yl(2, a_code, .yq(paste0("Option ", i))))
-        }
-      }
-    }
-
-    # ── type-specific options (commented out) in "all" mode ────────────────────
-    if (options == "all") {
-      # Skip fields already written above or handled as core Q-row columns
-      skip <- c(Q_CORE_FIELDS, "mandatory", "other", "relevance",
-                "random_group", "other_replace_text")
-      extra_opts <- setdiff(names(type_spec$options), skip)
-
-      if (length(extra_opts) > 0) {
-        p(paste0(.ind(1), "# \u2500\u2500 type-specific options [", type_code, "] ",
-                 .rule(max(2L, 38L - nchar(type_code)))))
-        for (opt_name in extra_opts) {
-          opt       <- type_spec$options[[opt_name]]
-          dflt_str  <- if (!is.null(opt$default)) .yq(opt$default) else "''"
-          valid_str <- .ls_fmt_valid(opt$valid)
-          lang_flag <- if (isTRUE(opt$language)) " [multilingual]" else ""
-          p(paste0(.ind(1), "# ",
-                   .lrpad(paste0(opt_name, ":"), 32L),
-                   .lrpad(dflt_str, 10L),
-                   "# valid: ", valid_str, lang_flag))
-        }
-      }
+  } else {
+    for (code in codes) {
+      .one_compact_row(code)
     }
   }
 
-  p()
-  invisible(buf$get())
+  cat("\n")
 }
 
 
-# ══ ls_settings_build ═════════════════════════════════════════════════════════
+# ══ lsh_options() — print helpers ═════════════════════════════════════════════
 
-#' Generate a copy-paste YAML scaffold for the settings block
-#'
-#' Prints a ready-to-use `settings:` block that can be pasted at the top of a
-#' LimeSeed YAML file.  The required keys (`language`, `titles`) are always
-#' included.  When `detail = TRUE`, every optional setting is appended as a
-#' commented-out line showing its default value and any valid-value constraint.
-#'
-#' @param lang Character. Primary language code (default `"en"`).
-#' @param extra_langs Character vector of additional language codes, or `NULL`.
-#' @param detail Logical. If `TRUE`, include all optional settings as comments.
-#' @return Invisibly, a character vector of the printed YAML lines.
-#' @seealso [ls_settings()]
-#' @export
-#'
-#' @examples
-#' ls_settings_build()
-#' ls_settings_build("de", extra_langs = "en")
-#' ls_settings_build(detail = TRUE)
-#' ls_settings_build("en", extra_langs = c("de", "fr"), detail = TRUE)
-ls_settings_build <- function(lang = "en", extra_langs = NULL, detail = FALSE) {
-  buf <- .ls_buf()
-  p   <- buf$p
+.lsh_print_options <- function(codes, opt_names, lang) {
+  is_all <- setequal(codes, LS_ALL_TYPE_CODES)
 
-  all_langs <- c(lang, extra_langs)
-  multilang <- length(all_langs) > 1
-
-  p("settings:")
-  p(.yl(1, "language", .yq(lang)))
-
-  if (multilang)
-    p(.yl(1, "additional_languages", .yq(paste(extra_langs, collapse = " "))))
-
-  # titles
-  p()
-  if (multilang) {
-    p(.yl(1, "titles"))
-    for (l in all_langs) p(.yl(2, l, .yq("My Survey Title")))
+  # Header
+  header <- if (is_all) {
+    "All LimeSurvey Attribute Options"
+  } else if (length(codes) == 1L) {
+    sprintf(
+      "Attribute Options for [%s] %s",
+      codes,
+      LS_QUESTION_TYPES[[codes]]$labels[[1L]]
+    )
   } else {
-    p(.yl(1, "titles", .yq("My Survey Title")))
+    paste0(
+      "Attribute Options for: ",
+      paste(sprintf("[%s]", codes), collapse = " ")
+    )
+  }
+  cat("\n", header, "\n", .lsh_rule(max(40L, nchar(header))), "\n\n", sep = "")
+
+  if (length(opt_names) == 0L) {
+    cat("(no options match)\n\n")
+    return(invisible(NULL))
   }
 
-  # descriptions (shown when multilingual)
-  if (multilang) {
-    p(.yl(1, "descriptions"))
-    for (l in all_langs) p(.yl(2, l, .yq("")))
-  }
+  # Column widths — Option column adapts to the longest name in this result set
+  w_name <- min(38L, max(nchar(opt_names))) + 2L
+  w_dflt <- 12L
+  w_valid <- 20L
+  w_desc <- 42L
 
-  # welcomeTexts / endTexts (shown in all mode)
-  p()
-  if (multilang) {
-    p(paste0(.ind(1), "# welcomeTexts:"))
-    for (l in all_langs) p(paste0(.ind(2), "# ", l, ": ''"))
-    p(paste0(.ind(1), "# endTexts:"))
-    for (l in all_langs) p(paste0(.ind(2), "# ", l, ": ''"))
-  } else {
-    p(paste0(.ind(1), "# welcomeTexts: ''"))
-    p(paste0(.ind(1), "# endTexts: ''"))
-  }
+  # Table header
+  cat(
+    .lsh_pad("Option", w_name),
+    .lsh_pad("Default", w_dflt),
+    .lsh_pad("Valid", w_valid),
+    .lsh_pad("Description", w_desc),
+    "Types\n"
+  )
+  cat(.lsh_rule(w_name + w_dflt + w_valid + w_desc + 8L), "\n")
 
-  if (detail) {
-    p()
-    p(paste0(.ind(1), "# \u2500\u2500 Optional settings (defaults shown) ", .rule(32)))
+  for (nm in opt_names) {
+    opt <- LS_Q_OPTIONS[[nm]]
 
-    skip_auto <- c("language", "additional_languages")
-    for (field in setdiff(names(SETTINGS_DEFAULTS), skip_auto)) {
-      dflt      <- SETTINGS_DEFAULTS[[field]]
-      valid     <- SETTINGS_VALID[[field]]
-      dflt_str  <- if (is.null(dflt) || identical(dflt, "")) '""'
-                   else paste0('"', dflt, '"')
-      valid_tag <- if (!is.null(valid))
-                     paste0("  # valid: ", paste(valid, collapse = " | "))
-                   else ""
-      p(paste0(.ind(1), "# ", .lrpad(field, 28L), dflt_str, valid_tag))
+    dflt <- if (!is.null(opt$default)) {
+      sprintf("'%s'", opt$default)
+    } else {
+      "(none)"
     }
-  } else {
-    p()
-    p(paste0(.ind(1), "# Tip: ls_settings_build(detail = TRUE) appends all optional settings."))
-    p(paste0(.ind(1), "# Tip: ls_settings(detail = TRUE)       lists them with valid values."))
+    valid_str <- .lsh_fmt_valid(opt$valid, max_len = w_valid - 1L)
+    desc_str <- .lsh_trunc(.lsh_desc(opt, lang), w_desc)
+    types_str <- if (is.null(opt$ls_type)) {
+      "all"
+    } else {
+      paste(opt$ls_type, collapse = " ")
+    }
+    lang_star <- if (isTRUE(opt$language)) " \u2605" else ""
+
+    cat(
+      .lsh_pad(nm, w_name),
+      .lsh_pad(dflt, w_dflt),
+      .lsh_pad(valid_str, w_valid),
+      .lsh_pad(desc_str, w_desc),
+      lang_star,
+      types_str,
+      "\n"
+    )
   }
 
-  p()
-  invisible(buf$get())
+  cat("\n", .lsh_rule(40L), "\n", sep = "")
+  cat(
+    "\u2605 = multilingual: supply as named list, e.g.  {en: '...', de: '...'}\n\n"
+  )
+}
+
+# Build the data.frame returned invisibly by lsh_options()
+.lsh_opts_df <- function(opt_names, lang = "en") {
+  rows <- lapply(opt_names, function(nm) {
+    opt <- LS_Q_OPTIONS[[nm]]
+    data.frame(
+      option = nm,
+      default = if (!is.null(opt$default)) {
+        as.character(opt$default)
+      } else {
+        NA_character_
+      },
+      valid = .lsh_fmt_valid(opt$valid, max_len = 200L),
+      description = .lsh_desc(opt, lang),
+      applies_to = if (is.null(opt$ls_type)) {
+        "all"
+      } else {
+        paste(opt$ls_type, collapse = " ")
+      },
+      multilingual = isTRUE(opt$language),
+      stringsAsFactors = FALSE
+    )
+  })
+  if (length(rows) == 0L) {
+    return(data.frame(
+      option = character(),
+      default = character(),
+      valid = character(),
+      description = character(),
+      applies_to = character(),
+      multilingual = logical(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  do.call(rbind, rows)
 }
 
 
-# ══ ls_quota_build ════════════════════════════════════════════════════════════
+# ══ Public functions ═══════════════════════════════════════════════════════════
 
-#' Generate a copy-paste YAML scaffold for a quota definition
+#' Describe LimeSurvey question types
 #'
-#' Prints a ready-to-use quota entry that can be pasted under the top-level
-#' `quota:` key of a LimeSeed YAML file.  Required fields (`limit`, `members`)
-#' are always included.  When `detail = TRUE`, optional fields are appended as
-#' commented-out lines with their defaults and valid values.
+#' Resolves type codes, label synonyms, or search terms and prints a structured
+#' overview of each matched type.  Returns the matched type codes invisibly as
+#' an \code{lsh_types_result} object, which can be piped into
+#' \code{\link{lsh_options}()}.
 #'
-#' @param name Character. Placeholder quota name (default `"quota_name"`).
-#' @param qst_code Character. Placeholder question code for the `members` block
-#'   (default `"QCODE"`).
-#' @param langs Character vector of language codes for multilingual text fields,
-#'   or `NULL` for single-language placeholders.
-#' @param detail Logical. If `TRUE`, include optional quota fields as comments.
-#' @return Invisibly, a character vector of the printed YAML lines.
-#' @seealso [ls_question_build()]
+#' @details
+#' **Resolution order** (applied per token in \code{type}):
+#' \enumerate{
+#'   \item Exact LS type code (\code{"F"}, \code{"L"}, \code{":"}, …)
+#'   \item Case-insensitive label match (\code{"array"}, \code{"radio"}, …)
+#'   \item Substring search across all labels and type descriptions (en/de)
+#' }
+#' When \code{type = "all"} (the default), types are grouped by category
+#' (List/Radio, Text, Array, Multiple Choice, Special/Masked).
+#'
+#' @param type Character vector. Type codes, labels, search terms, or
+#'   \code{"all"} (default).
+#' @param compact Logical. If \code{TRUE}, print a compact one-row-per-type
+#'   table instead of the full detail blocks.  Useful for a quick overview of
+#'   many types.
+#' @param lang Character. Language for type descriptions: \code{"en"}
+#'   (default) or \code{"de"}.  Falls back to English when the requested
+#'   language has no description.
+#'
+#' @return An \code{lsh_types_result} object (character vector of resolved LS
+#'   type codes) returned \strong{invisibly}.  Assigning the result gives a
+#'   plain character vector; printing it shows a compact one-liner.  Pipe into
+#'   \code{\link{lsh_options}()} for full option details.
+#'
+#' @seealso \code{\link{lsh_options}}
 #' @export
 #'
 #' @examples
-#' ls_quota_build()
-#' ls_quota_build("gender_female", qst_code = "Gender", detail = TRUE)
-#' ls_quota_build(langs = c("en", "de"), detail = TRUE)
-ls_quota_build <- function(
-  name     = "quota_name",
-  qst_code = "QCODE",
-  langs    = NULL,
-  detail   = FALSE
-) {
-  buf <- .ls_buf()
-  p   <- buf$p
+#' lsh_types()                              # all types, grouped
+#' lsh_types("all", compact = TRUE)         # compact table
+#' lsh_types("F")                           # one type, full detail
+#' lsh_types(c("F", "N"))                   # two types
+#' lsh_types("array")                       # label / search term
+#' lsh_types("text", lang = "de")           # German descriptions
+#' lsh_types(c("F", "N")) |> lsh_options()  # pipe to options
+lsh_types <- function(type = "all", compact = FALSE, lang = "en") {
+  codes <- .lsh_resolve_types(type)
 
-  multilang <- !is.null(langs) && length(langs) > 1
+  if (length(codes) == 0L) {
+    message(
+      "No types matched for: ",
+      paste(sprintf("'%s'", type), collapse = ", ")
+    )
+    return(invisible(.lsh_types_result(character(0L))))
+  }
 
-  p("# \u2500\u2500 Quota definition \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500")
-  p("# Place this under the top-level `quota:` key in your LimeSeed YAML.")
-  p("# Only question types with Quota = YES support quota membership.")
-  p("# Use ls_questions() to check — look for YES in the Quota column.")
-  p()
-  p("quota:")
-  p(paste0(.ind(1), name, ":"))
-  p(.yl(2, "limit", "50", "integer \u2265 0 — max completes before quota triggers"))
-  p(.yl(2, "members"))
-  p(.yl(3, qst_code))
-  p(paste0(.ind(4), "- 'A1'  # answer / subquestion code that counts toward this quota"))
-  p(paste0(.ind(4), "- 'A2'  # add as many codes as needed"))
+  if (compact) {
+    .lsh_print_types_compact(codes, lang)
+  } else if (identical(type, "all") || setequal(codes, LS_ALL_TYPE_CODES)) {
+    .lsh_print_types_grouped(codes, lang)
+  } else {
+    .lsh_print_types_detail(codes, lang)
+  }
 
-  if (detail) {
-    p()
-    p(paste0(.ind(2), "# \u2500\u2500 optional fields \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"))
-    for (opt_name in setdiff(names(LS_QUOTA_OPTIONS), c("limit", "members"))) {
-      opt      <- LS_QUOTA_OPTIONS[[opt_name]]
-      is_lang  <- isTRUE(opt$language)
+  invisible(.lsh_types_result(codes))
+}
 
-      if (is_lang) {
-        if (multilang) {
-          p(paste0(.ind(2), "# ", opt_name, ":"))
-          for (l in langs)
-            p(paste0(.ind(3), "# ", l, ": ''"))
-        } else {
-          p(paste0(.ind(2), "# ", opt_name, ": ''"))
-        }
-      } else {
-        dflt_str  <- if (!is.null(opt$default)) as.character(opt$default) else "''"
-        valid_str <- .ls_fmt_valid(opt$valid)
-        p(paste0(.ind(2), "# ",
-                 .lrpad(paste0(opt_name, ":"), 18L),
-                 .lrpad(dflt_str, 6L),
-                 "# valid: ", valid_str))
-      }
+
+#' Describe LimeSurvey attribute options
+#'
+#' Lists the attribute options available for the selected question type(s),
+#' with their defaults, valid values, language-aware descriptions, and the full
+#' set of types each option applies to.  Accepts the output of
+#' \code{\link{lsh_types}()} directly via the pipe.
+#'
+#' @details
+#' \code{types} is resolved by the same three-stage logic as
+#' \code{\link{lsh_types}()}: exact code → label match → substring search.
+#' The output table always includes Option, Default, Valid, Description, and
+#' Types columns.  The \code{search} argument filters the option list by
+#' substring in both option names and descriptions (in all languages).
+#'
+#' @param types One of:
+#'   \itemize{
+#'     \item An \code{lsh_types_result} object piped from \code{lsh_types()}
+#'     \item \code{"all"} (default) — all options across all types
+#'     \item Type code(s) or label(s): \code{"F"}, \code{c("F", "N")},
+#'       \code{"array"}, …
+#'   }
+#' @param search Character. Optional substring filter applied to option names
+#'   and descriptions (both en and de).  Works regardless of \code{types}.
+#' @param lang Character. Language for option descriptions: \code{"en"}
+#'   (default) or \code{"de"}.
+#'
+#' @return A \code{data.frame} with columns \code{option}, \code{default},
+#'   \code{valid}, \code{description}, \code{applies_to}, \code{multilingual},
+#'   returned \strong{invisibly}.
+#'
+#' @seealso \code{\link{lsh_types}}
+#' @export
+#'
+#' @examples
+#' lsh_options()                              # all options
+#' lsh_options("F")                           # options for array type
+#' lsh_options(c("F", "N"))                   # union of options for F and N
+#' lsh_options("F", search = "validation")    # filter within F's options
+#' lsh_options(search = "time")               # search all options
+#' lsh_options(search = "random", lang = "de")  # German descriptions
+#' lsh_types(c("F", "N")) |> lsh_options()   # pipe from lsh_types
+lsh_options <- function(types = "all", search = NULL, lang = "en") {
+  # Resolve types input — pipe-compatible with lsh_types_result
+  codes <- if (inherits(types, "lsh_types_result")) {
+    as.character(types)
+  } else {
+    .lsh_resolve_types(types)
+  }
+
+  if (length(codes) == 0L) {
+    message("No matching types. Use lsh_types() to browse available types.")
+    return(invisible(.lsh_opts_df(character(0L), lang)))
+  }
+
+  # Union of all applicable options for the selected types
+  opt_names <- unique(unlist(
+    lapply(codes, function(code) names(LS_TYPES[[code]]$options)),
+    use.names = FALSE
+  ))
+
+  # Apply search filter — names and descriptions in both languages
+  if (!is.null(search)) {
+    s_low <- tolower(trimws(search))
+    opt_names <- Filter(
+      function(nm) {
+        opt <- LS_Q_OPTIONS[[nm]]
+        any(grepl(
+          s_low,
+          tolower(c(
+            nm,
+            opt$description$en %||% "",
+            opt$description$de %||% ""
+          )),
+          fixed = TRUE
+        ))
+      },
+      opt_names
+    )
+
+    if (length(opt_names) == 0L) {
+      message(sprintf(
+        "No options matching '%s' found for the selected type(s).",
+        search
+      ))
+      return(invisible(.lsh_opts_df(character(0L), lang)))
     }
   }
 
-  p()
-  invisible(buf$get())
+  .lsh_print_options(codes, opt_names, lang)
+  invisible(.lsh_opts_df(opt_names, lang))
 }
