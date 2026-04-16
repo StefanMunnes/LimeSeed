@@ -336,7 +336,7 @@ print.lsh_types_result <- function(x, ...) {
   w_name <- min(38L, max(nchar(opt_names))) + 2L
   w_dflt <- 12L
   w_valid <- 20L
-  w_desc <- 42L
+  w_desc <- 60L
 
   # Table header
   cat(
@@ -356,21 +356,23 @@ print.lsh_types_result <- function(x, ...) {
     } else {
       "(none)"
     }
-    valid_str <- .lsh_fmt_valid(opt$valid, max_len = w_valid - 1L)
+    lang_star <- if (isTRUE(opt$language)) " \u2605" else ""
+    valid_str <- paste0(
+      .lsh_fmt_valid(opt$valid, max_len = w_valid - 1L),
+      lang_star
+    )
     desc_str <- .lsh_trunc(.lsh_desc(opt, lang), w_desc)
     types_str <- if (is.null(opt$ls_type)) {
       "all"
     } else {
       paste(opt$ls_type, collapse = " ")
     }
-    lang_star <- if (isTRUE(opt$language)) " \u2605" else ""
 
     cat(
       .lsh_pad(nm, w_name),
       .lsh_pad(dflt, w_dflt),
       .lsh_pad(valid_str, w_valid),
       .lsh_pad(desc_str, w_desc),
-      lang_star,
       types_str,
       "\n"
     )
