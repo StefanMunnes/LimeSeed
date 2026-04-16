@@ -6,14 +6,14 @@
 #   lst_   template generators          (future file)
 #
 # Public API:
-#   lsh_types(type, compact, lang)    describe question types
+#   lsh_types(type, details, lang)    describe question types
 #   lsh_options(types, search, lang)  describe attribute options
 #
 # Pipe workflow:
 #   lsh_types("F")                      one type, full detail
-#   lsh_types(c("F", "N"))             several types
+#   lsh_types(c("F", "N"))              several types
 #   lsh_types("array")                  label / search term
-#   lsh_types("all", compact = TRUE)    compact table of all types
+#   lsh_types("all", details = TRUE)    detailed table of all types
 #   lsh_types(c("F", "N")) |> lsh_options()   options for F and N
 #   lsh_options(search = "time")        search all options
 #
@@ -121,15 +121,15 @@ print.lsh_types_result <- function(x, ...) {
 #   2. Exact label match      ("array", "radio") — case-insensitive
 #   3. Substring search       across all labels and en/de descriptions
 
-.lsh_resolve_types <- function(type, quiet = FALSE) {
-  if (identical(type, "all")) {
+.lsh_resolve_types <- function(types, quiet = FALSE) {
+  if (identical(types, "all")) {
     return(LS_ALL_TYPE_CODES)
   }
 
   codes <- character(0)
   not_found <- character(0)
 
-  for (t in as.character(type)) {
+  for (t in as.character(types)) {
     t_trim <- trimws(t)
     t_low <- tolower(t_trim)
 
@@ -429,20 +429,19 @@ print.lsh_types_result <- function(x, ...) {
 #' \code{\link{lsh_options}()}.
 #'
 #' @details
-#' **Resolution order** (applied per token in \code{type}):
+#' **Resolution order** (applied per token in \code{types}):
 #' \enumerate{
 #'   \item Exact LS type code (\code{"F"}, \code{"L"}, \code{":"}, …)
-#'   \item Case-insensitive label match (\code{"array"}, \code{"radio"}, …)
 #'   \item Substring search across all labels and type descriptions (en/de)
 #' }
-#' When \code{type = "all"} (the default), types are grouped by category
+#' When \code{types = "all"} (the default), types are grouped by category
 #' (List/Radio, Text, Array, Multiple Choice, Special/Masked).
 #'
-#' @param type Character vector. Type codes, labels, search terms, or
+#' @param types Character vector. Type codes, labels, search terms, or
 #'   \code{"all"} (default).
-#' @param compact Logical. If \code{TRUE}, print a compact one-row-per-type
-#'   table instead of the full detail blocks.  Useful for a quick overview of
-#'   many types.
+#' @param details Logical. If \code{TRUE} (default), print a detailed version
+#'   with requieremens and options instead a one-row-per-type table.
+#'   Useful if just one or few types are specified.
 #' @param lang Character. Language for type descriptions: \code{"en"}
 #'   (default) or \code{"de"}.  Falls back to English when the requested
 #'   language has no description.
@@ -456,27 +455,27 @@ print.lsh_types_result <- function(x, ...) {
 #' @export
 #'
 #' @examples
-#' lsh_types()                              # all types, grouped
-#' lsh_types("all", compact = TRUE)         # compact table
-#' lsh_types("F")                           # one type, full detail
+#' lsh_types()                              # all types, compact and grouped
+#' lsh_types("all", details = TRUE)         # detailed table
+#' lsh_types("F")                           # one type, compact table
 #' lsh_types(c("F", "N"))                   # two types
 #' lsh_types("array")                       # label / search term
 #' lsh_types("text", lang = "de")           # German descriptions
 #' lsh_types(c("F", "N")) |> lsh_options()  # pipe to options
-lsh_types <- function(type = "all", compact = FALSE, lang = "en") {
-  codes <- .lsh_resolve_types(type)
+lsh_types <- function(types = "all", details = FALSE, lang = "en") {
+  codes <- .lsh_resolve_types(types)
 
   if (length(codes) == 0L) {
     message(
       "No types matched for: ",
-      paste(sprintf("'%s'", type), collapse = ", ")
+      paste(sprintf("'%s'", types), collapse = ", ")
     )
     return(invisible(.lsh_types_result(character(0L))))
   }
 
-  if (compact) {
+  if (!details) {
     .lsh_print_types_compact(codes, lang)
-  } else if (identical(type, "all") || setequal(codes, LS_ALL_TYPE_CODES)) {
+  } else if (identical(types, "all") || setequal(codes, LS_ALL_TYPE_CODES)) {
     .lsh_print_types_grouped(codes, lang)
   } else {
     .lsh_print_types_detail(codes, lang)

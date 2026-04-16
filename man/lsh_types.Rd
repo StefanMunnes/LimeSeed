@@ -4,15 +4,15 @@
 \alias{lsh_types}
 \title{Describe LimeSurvey question types}
 \usage{
-lsh_types(type = "all", compact = FALSE, lang = "en")
+lsh_types(types = "all", details = FALSE, lang = "en")
 }
 \arguments{
-\item{type}{Character vector. Type codes, labels, search terms, or
+\item{types}{Character vector. Type codes, labels, search terms, or
 \code{"all"} (default).}
 
-\item{compact}{Logical. If \code{TRUE}, print a compact one-row-per-type
-table instead of the full detail blocks.  Useful for a quick overview of
-many types.}
+\item{details}{Logical. If \code{TRUE} (default), print a detailed version
+with requieremens and options instead a one-row-per-type table.
+Useful if just one or few types are specified.}
 
 \item{lang}{Character. Language for type descriptions: \code{"en"}
 (default) or \code{"de"}.  Falls back to English when the requested
@@ -31,19 +31,18 @@ an \code{lsh_types_result} object, which can be piped into
 \code{\link{lsh_options}()}.
 }
 \details{
-\strong{Resolution order} (applied per token in \code{type}):
+\strong{Resolution order} (applied per token in \code{types}):
 \enumerate{
 \item Exact LS type code (\code{"F"}, \code{"L"}, \code{":"}, …)
-\item Case-insensitive label match (\code{"array"}, \code{"radio"}, …)
 \item Substring search across all labels and type descriptions (en/de)
 }
-When \code{type = "all"} (the default), types are grouped by category
+When \code{types = "all"} (the default), types are grouped by category
 (List/Radio, Text, Array, Multiple Choice, Special/Masked).
 }
 \examples{
-lsh_types()                              # all types, grouped
-lsh_types("all", compact = TRUE)         # compact table
-lsh_types("F")                           # one type, full detail
+lsh_types()                              # all types, compact and grouped
+lsh_types("all", details = TRUE)         # detailed table
+lsh_types("F")                           # one type, compact table
 lsh_types(c("F", "N"))                   # two types
 lsh_types("array")                       # label / search term
 lsh_types("text", lang = "de")           # German descriptions
