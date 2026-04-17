@@ -1,6 +1,6 @@
-# LimeSeed
+# LimeSeed <img src="man/figures/logo.svg" align="right" height="120" />
 
-**Author your [LimeSurvey](https://www.limesurvey.org) questionnaires in YAML — export to TSV in one call.**
+**Author your LimeSurvey questionnaires in YAML — export to TSV in one call.**
 
 LimeSeed is an R package that allows you to define surveys as human-readable YAML files and compile them into TSV format for import into [LimeSurvey](https://www.limesurvey.org).
 
@@ -271,9 +271,7 @@ quota:
 
 ## Discover: Helper Functions
 
-LimeSeed includes helper functions to explore available **survey settings**, **question types**, **options**, as well as their valid/default values directly from R. These are especially useful while designing surveys, as they allow you to quickly look up how LimeSurvey features map to YAML fields.
-
-The helpers are designed to work well with R’s native pipe (`|>`), enabling a natural workflow from discovery to implementation.
+LimeSeed includes helper functions to explore available **survey settings**, **question types**, **question options**, as well as their valid/default values directly from R. These are especially useful while designing surveys, as they allow you to quickly look up how LimeSurvey features map to YAML fields.
 
 ### Survey Settings
 
@@ -290,11 +288,12 @@ lsh_settings("mail")   # show all settings matching name or description text
 Get compact or detailed information about one or multiple question types:
 
 ```r
-lsh_types()       # show "all" question types per default
-lsh_types("F")    # check for specific question type by known code
-lsh_types("text") # search for all types matching label or description text
-lsh_types(c("array", "numerical input")) # search for multiple types at once
-lsh_types("F", detailed = TRUE) # show all available information for choosen question types
+lsh_types()                        # show "all" question types per default
+lsh_types("F")                     # check for specific question type by known code
+lsh_types("text")                  # search for all types matching label or description text
+lsh_types(c("array", "numerical")) # search for multiple types at once
+
+lsh_types("F", detailed = TRUE)    # show all available information for choosen question types
 ```
 
 ### Question options
@@ -302,13 +301,13 @@ lsh_types("F", detailed = TRUE) # show all available information for choosen que
 Explore all options or search for specific ones across all or selected question types:
 
 ```r
-lsh_options() # Browse all options
-lsh_options("F") # options for array type
-lsh_options(c("F", "N")) # union of options for multiple types
+lsh_options()                           # Browse all options
+lsh_options("F")                        # options for array type
+lsh_options(c("F", "N"))                # union of options for multiple types
 
-lsh_options(search = "validation") # Search by keyword
+lsh_options(search = "validation")      # Search by keyword
 
 lsh_options("F", search = "validation") # Combine type + search
 
-lsh_types("array") |> lsh_options() # Pipe directly from type discovery
+lsh_types("array") |> lsh_options()     # Pipe directly from type discovery
 ```
