@@ -44,7 +44,8 @@ seed_to_tsv(
   file = "output/survey.tsv"
 )
 
-# When seed manipulation is required, load with [load_seed()], manipulate and feed back into seed_to_tsv() pipeline
+# When seed manipulation is required, load with [load_seed()], manipulate and
+# feed back into seed_to_tsv() pipeline
 seed <- load_seed("path/to/survey.yaml")
 seed$settings$mandatory        <- "N"
 seed$structure$G1$Q2$relevance <- "Q1 == 'yes'"

@@ -195,7 +195,7 @@ load_seed <- function(seed_raw) {
 #' Build the LimeSurvey data frame from a seed list
 #'
 #' @param seed Named list with `settings` and `structure` elements.
-#' @return data.frame with columns matching [LS_COLUMNS] (all character).
+#' @return data.frame with columns matching `LS_COLUMNS` (all character).
 #' @seealso [write_lsdf()], [seed_to_tsv()]
 #' @export
 build_lsdf <- function(seed) {
@@ -225,7 +225,7 @@ build_lsdf <- function(seed) {
   # Pre-compute quota IDs: quota name → sequential integer (1-based)
   # These become the `id` of QTA rows and the `related_id` of QTAM/QTALS rows.
   quota_id_map <- if (!is.null(seed$quota)) {
-    setNames(seq_along(seed$quota), names(seed$quota))
+    stats::setNames(seq_along(seed$quota), names(seed$quota))
   } else {
     NULL
   }
@@ -394,7 +394,8 @@ write_lsdf <- function(df, file) {
 #'   file = "output/survey.tsv"
 #' )
 #'
-#' # When seed manipulation is required, load with [load_seed()], manipulate and feed back into seed_to_tsv() pipeline
+#' # When seed manipulation is required, load with [load_seed()], manipulate and
+#' # feed back into seed_to_tsv() pipeline
 #' seed <- load_seed("path/to/survey.yaml")
 #' seed$settings$mandatory        <- "N"
 #' seed$structure$G1$Q2$relevance <- "Q1 == 'yes'"

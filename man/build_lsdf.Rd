@@ -10,7 +10,7 @@ build_lsdf(seed)
 \item{seed}{Named list with \code{settings} and \code{structure} elements.}
 }
 \value{
-data.frame with columns matching \link{LS_COLUMNS} (all character).
+data.frame with columns matching \code{LS_COLUMNS} (all character).
 }
 \description{
 Build the LimeSurvey data frame from a seed list

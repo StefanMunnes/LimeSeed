@@ -3,12 +3,12 @@
 \name{build_settings_rows}
 \alias{build_settings_rows}
 \title{Build S-rows (global survey settings)
-Uses names(SETTINGS_DEFAULTS) directly — no separate S_ROW_FIELDS constant.}
+Uses names(LS_SETTINGS) directly - no separate S_ROW_FIELDS constant.}
 \usage{
 build_settings_rows(s)
 }
 \description{
 Build S-rows (global survey settings)
-Uses names(SETTINGS_DEFAULTS) directly — no separate S_ROW_FIELDS constant.
+Uses names(LS_SETTINGS) directly - no separate S_ROW_FIELDS constant.
 }
 \keyword{internal}

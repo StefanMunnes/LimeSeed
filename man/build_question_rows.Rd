@@ -21,7 +21,8 @@ prefix, suffix, default) are written with inline defaults — no Q_ROW_ALWAYS
 constant is needed.
 }
 \details{
-Extra attribute columns are resolved via LS_TYPES[\link{ls_type}]$options:
+Extra attribute columns are resolved via \code{LS_TYPES[[ls_type]]$options},
+where \code{ls_type} is the resolved local LimeSurvey type code:
 \enumerate{
 \item User provided a value in YAML  → use it
 \item Option has a non-NULL default  → write that default

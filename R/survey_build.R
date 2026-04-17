@@ -9,7 +9,8 @@
 #' Merge user settings over package defaults
 #' @keywords internal
 resolve_settings <- function(settings) {
-  out <- utils::modifyList(SETTINGS_DEFAULTS, settings)
+  defaults <- stats::setNames(lapply(LS_SETTINGS, `[[`, "default"), names(LS_SETTINGS))
+  out <- utils::modifyList(defaults, settings)
 
   if (is.null(settings$additional_languages) && is.list(out$titles)) {
     extra <- setdiff(names(out$titles), out$language)
@@ -31,10 +32,10 @@ all_languages <- function(s) {
 
 
 #' Build S-rows (global survey settings)
-#' Uses names(SETTINGS_DEFAULTS) directly — no separate S_ROW_FIELDS constant.
+#' Uses names(LS_SETTINGS) directly - no separate S_ROW_FIELDS constant.
 #' @keywords internal
 build_settings_rows <- function(s) {
-  lapply(names(SETTINGS_DEFAULTS), function(field) {
+  lapply(names(LS_SETTINGS), function(field) {
     ls_row(class = "S", name = field, text = as.character(s[[field]] %||% ""))
   })
 }
@@ -183,7 +184,8 @@ build_structure_rows <- function(
 #' prefix, suffix, default) are written with inline defaults — no Q_ROW_ALWAYS
 #' constant is needed.
 #'
-#' Extra attribute columns are resolved via LS_TYPES[[ls_type]]$options:
+#' Extra attribute columns are resolved via `LS_TYPES[[ls_type]]$options`,
+#' where `ls_type` is the resolved local LimeSurvey type code:
 #'   1. User provided a value in YAML  → use it
 #'   2. Option has a non-NULL default  → write that default
 #'   3. NULL default and no user value → skip (column stays blank)
