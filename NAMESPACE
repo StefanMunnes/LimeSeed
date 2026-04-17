@@ -3,7 +3,6 @@
 S3method(print,lsh_types_result)
 export(build_lsdf)
 export(load_seed)
-export(ls_codebook)
 export(lsh_options)
 export(lsh_settings)
 export(lsh_types)

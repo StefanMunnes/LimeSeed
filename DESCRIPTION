@@ -7,6 +7,9 @@ Description: Avoid extensive manual clicking in the LimeSurvey web interface by 
 License: MIT + file LICENSE
 Imports:
     yaml
+Suggests:
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
