@@ -1,4 +1,8 @@
 
+# LimeSeed 0.0.5
+
+- add template generator functions (lst_) for settings, questions, quota, and seed
+
 # LimeSeed 0.0.4
 
 - add helper functions (lsh_) for survey settings, question types and question options

@@ -20,6 +20,19 @@ test_that("validate_settings enforces required fields and warns on invalid value
   expect_true(has_issue(issues, "warning", "format"))
 })
 
+test_that("validate_settings accepts known SL settings without unknown-setting warnings", {
+  issues <- validator_issues(validate_settings, list(
+    language = "en",
+    titles = list(en = "Survey"),
+    welcomeTexts = list(en = "Welcome"),
+    endTexts = list(en = "Done"),
+    dateformats = 6L,
+    numberformats = 0L
+  ))
+
+  expect_false(any(grepl("Unknown survey setting", vapply(issues, `[[`, character(1), "message"))))
+})
+
 test_that("validate_structure flags unsupported types, missing required parts, and invalid values", {
   structure <- list(
     grp1 = list(

@@ -25,6 +25,7 @@ test_that("build_settings_rows and build_lang_rows produce the expected named ro
 
   s_rows <- build_settings_rows(settings)
   sl_rows <- build_lang_rows(settings, "en")
+  sl_names <- vapply(sl_rows, `[[`, character(1), "name")
 
   expect_length(s_rows, length(LS_SETTINGS))
   expect_true(all(vapply(s_rows, `[[`, character(1), "class") == "S"))
@@ -32,7 +33,10 @@ test_that("build_settings_rows and build_lang_rows produce the expected named ro
 
   expect_true(all(vapply(sl_rows, `[[`, character(1), "class") == "SL"))
   expect_true(all(vapply(sl_rows, `[[`, character(1), "language") == "en"))
-  expect_true("surveyls_title" %in% vapply(sl_rows, `[[`, character(1), "name"))
+  expect_true("surveyls_title" %in% sl_names)
+  expect_true("surveyls_welcometext" %in% sl_names)
+  expect_true("surveyls_endtext" %in% sl_names)
+  expect_true("surveyls_dateformat" %in% sl_names)
 })
 
 test_that("build_id_map assigns depth-first sequential ids and skips groupOptions", {

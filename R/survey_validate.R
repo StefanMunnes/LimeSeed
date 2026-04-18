@@ -166,23 +166,25 @@ issues_to_df <- function(issues) {
 
 #' @keywords internal
 validate_settings <- function(raw, add) {
+  setting_specs <- c(LS_SETTINGS, LS_SL_SETTINGS)
+
   if (is.null(raw$language) || nchar(trimws(raw$language)) == 0) {
     add("error", "settings$language", "is required.")
   }
 
-  if (is.null(raw$titles)) {
-    add("error", "settings$titles", "is required.")
+  required_settings <- names(Filter(
+    function(spec) isTRUE(spec$required),
+    setting_specs
+  ))
+  for (set_name in required_settings) {
+    if (is.null(raw[[set_name]])) {
+      add("error", paste0("settings$", set_name), "is required.")
+    }
   }
 
   # Loop over all settings provided by the user in the YAML
   for (set_name in names(raw)) {
-    # 'titles' is a required multilingual text block handled specially above;
-    # it is not an official LS setting column, so skip further validation on it.
-    if (set_name == "titles") {
-      next
-    }
-
-    spec <- LS_SETTINGS[[set_name]]
+    spec <- setting_specs[[set_name]]
     loc <- paste0("settings$", set_name)
     val <- raw[[set_name]]
 

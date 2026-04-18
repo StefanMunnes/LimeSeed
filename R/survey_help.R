@@ -642,7 +642,8 @@ lsh_options <- function(types = "all", search = NULL, lang = "en") {
 #' lsh_settings(c("format", "email"))    # Exact match + search fallback
 #' lsh_settings("email", lang = "de")    # Search with German descriptions
 lsh_settings <- function(settings = "all", lang = "en") {
-  all_settings <- names(LS_SETTINGS)
+  setting_specs <- c(LS_SETTINGS, LS_SL_SETTINGS)
+  all_settings <- names(setting_specs)
   is_all <- identical(settings, "all")
 
   target_settings <- character(0L)
@@ -659,7 +660,7 @@ lsh_settings <- function(settings = "all", lang = "en") {
         s_low <- tolower(trimws(term))
         matches <- Filter(
           function(nm) {
-            spec <- LS_SETTINGS[[nm]]
+            spec <- setting_specs[[nm]]
             any(grepl(
               s_low,
               tolower(c(
@@ -689,7 +690,7 @@ lsh_settings <- function(settings = "all", lang = "en") {
 
   # Build the data frame
   rows <- lapply(target_settings, function(nm) {
-    spec <- LS_SETTINGS[[nm]]
+    spec <- setting_specs[[nm]]
 
     # Format the 'valid' column, handling our .is_num function gracefully
     v_raw <- spec$valid

@@ -311,3 +311,79 @@ lsh_options("F", search = "validation") # Combine type + search
 
 lsh_types("array") |> lsh_options()     # Pipe directly from type discovery
 ```
+
+## Create: Template Functions
+
+LimeSeed includes template functions to scaffold **settings**, **questions**,
+**quota**, and a full **seed** directly from R.
+
+All four functions support the same three usage modes:
+
+```r
+lst_settings()                    # print template in the console
+x <- lst_settings()               # assign template as list object
+lst_settings(path = "templates/") # write YAML file(s)
+lst_settings(add_valid = TRUE)    # add inline comments with valid values/types
+```
+
+When `path` points to a folder, the helper writes the default file name for that
+component. For `lst_seed()`, a folder writes split files
+(`settings.yml`, `structure.yml`, `quota.yml`), while a file path writes one
+combined YAML seed.
+
+The `example` argument moves from minimal to simple to full, `lang` can be one language
+or multilingual, and `add_valid = TRUE` annotates the printed or written YAML.
+
+### Settings
+
+Use `lst_settings()` to scaffold only the survey settings block. 
+
+```r
+lst_settings()                               # minimal settings starter
+lst_settings("simple", lang = c("en", "de")) # a few common extras, multilingual
+lst_settings("full", add_valid = TRUE)       # full template, valid values as comment
+```
+
+### Questions
+
+Use `lst_questions()` to scaffold question blocks without groups.
+
+```r
+lst_questions()                              # all available types
+lst_questions("radio", example = "simple")   # a few common extras
+lst_questions(c("radio", "array"))           # selected types
+lst_questions("long text", example = "full") # richer example
+lst_questions("radio", lang = c("en", "de")) # multilingual texts
+```
+
+### Quota
+
+Use `lst_quota()` when you only need the optional quota block.
+
+```r
+lst_quota()                     # simple quota example
+lst_quota(lang = c("en", "de")) # multilingual quota texts
+```
+
+### Full Seed
+
+Use `lst_seed()` to create a complete starter seed with settings, grouped
+questions, and optionally quota. The `example` argument `"full"` also adds 
+`groupOptions` to the sample group.
+
+```r
+lst_seed()
+
+lst_seed(
+  example = "simple",
+  question_types = c("radio", "long text")
+)
+
+lst_seed(
+  example = "full",
+  question_types = c("radio", "array", "long text"),
+  quota = TRUE,
+  lang = c("en", "de"),
+  add_valid = TRUE
+)
+```

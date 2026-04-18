@@ -1,6 +1,6 @@
 Package: LimeSeed
 Title: Use a structured YAML file as a survey source for LimeSurvey
-Version: 0.0.4
+Version: 0.0.5
 Authors@R: 
     person("Stefan", "Munnes", , "munnes@wzb.eu", role = c("aut", "cre"))
 Description: Avoid extensive manual clicking in the LimeSurvey web interface by creating and editing a user- and coding-friendly YAML file. This package converts that structured input into a format that can be imported directly into LimeSurvey to create a new survey. With this file-oriented approach, the full survey structure, content, and revision history remain part of your coding workflow.

@@ -9,7 +9,8 @@
 #' Merge user settings over package defaults
 #' @keywords internal
 resolve_settings <- function(settings) {
-  defaults <- stats::setNames(lapply(LS_SETTINGS, `[[`, "default"), names(LS_SETTINGS))
+  all_specs <- c(LS_SETTINGS, LS_SL_SETTINGS)
+  defaults <- stats::setNames(lapply(all_specs, `[[`, "default"), names(all_specs))
   out <- utils::modifyList(defaults, settings)
 
   if (is.null(settings$additional_languages) && is.list(out$titles)) {
@@ -48,29 +49,35 @@ build_lang_rows <- function(s, lang) {
 
   sl_fields <- list(
     surveyls_survey_id = as.character(s$sid),
-    surveyls_language = lang,
-    surveyls_title = get_text(s$titles, lang),
-    surveyls_description = get_text(s$descriptions, lang),
-    surveyls_welcometext = get_text(s$welcomeTexts, lang),
-    surveyls_policy_notice = get_text(s$policy_notice, lang),
-    surveyls_policy_notice_label = get_text(s$policy_notice_label, lang),
-    surveyls_endtext = get_text(s$endTexts, lang),
-    surveyls_url = get_text(s$endURLs, lang),
-    surveyls_urldescription = get_text(s$endURLdescriptions, lang),
-    surveyls_email_invite_subj = e$surveyls_email_invite_subj,
-    surveyls_email_invite = e$surveyls_email_invite,
-    surveyls_email_remind_subj = e$surveyls_email_remind_subj,
-    surveyls_email_remind = e$surveyls_email_remind,
-    surveyls_email_register_subj = e$surveyls_email_register_subj,
-    surveyls_email_register = e$surveyls_email_register,
-    surveyls_email_confirm_subj = e$surveyls_email_confirm_subj,
-    surveyls_email_confirm = e$surveyls_email_confirm,
-    surveyls_dateformat = as.character(s$dateformats %||% 6),
-    email_admin_notification_subj = e$email_admin_notification_subj,
-    email_admin_notification = e$email_admin_notification,
-    email_admin_responses_subj = e$email_admin_responses_subj,
-    email_admin_responses = e$email_admin_responses,
-    surveyls_numberformat = as.character(s$numberformats %||% 0)
+    surveyls_language = lang
+  )
+
+  for (field in names(LS_SL_SETTINGS)) {
+    spec <- LS_SL_SETTINGS[[field]]
+    value <- s[[field]] %||% spec$default %||% ""
+    sl_fields[[spec$sl_name]] <- if (isTRUE(spec$language)) {
+      get_text(value, lang)
+    } else {
+      as.character(value)
+    }
+  }
+
+  sl_fields <- c(
+    sl_fields,
+    list(
+      surveyls_email_invite_subj = e$surveyls_email_invite_subj,
+      surveyls_email_invite = e$surveyls_email_invite,
+      surveyls_email_remind_subj = e$surveyls_email_remind_subj,
+      surveyls_email_remind = e$surveyls_email_remind,
+      surveyls_email_register_subj = e$surveyls_email_register_subj,
+      surveyls_email_register = e$surveyls_email_register,
+      surveyls_email_confirm_subj = e$surveyls_email_confirm_subj,
+      surveyls_email_confirm = e$surveyls_email_confirm,
+      email_admin_notification_subj = e$email_admin_notification_subj,
+      email_admin_notification = e$email_admin_notification,
+      email_admin_responses_subj = e$email_admin_responses_subj,
+      email_admin_responses = e$email_admin_responses
+    )
   )
 
   lapply(names(sl_fields), function(field) {
