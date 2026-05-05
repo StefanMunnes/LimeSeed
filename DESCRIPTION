@@ -6,6 +6,7 @@ Authors@R:
 Description: Avoid extensive manual clicking in the LimeSurvey web interface by creating and editing a user- and coding-friendly YAML file. This package converts that structured input into a format that can be imported directly into LimeSurvey to create a new survey. With this file-oriented approach, the full survey structure, content, and revision history remain part of your coding workflow.
 License: MIT + file LICENSE
 Imports:
+    quarto,
     yaml
 Suggests:
     testthat (>= 3.0.0)

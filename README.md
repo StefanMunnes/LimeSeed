@@ -38,11 +38,17 @@ Because the seed is just data, you can:
 
 ---
 
+## Seed Structure: YAML
+
+
+
+---
+
 ## Pipeline
 
-LimeSeed follows a simple, three-stage pipeline for turning survey definitions into LimeSurvey import files:
+LimeSeed follows a simple, three-stage pipeline for turning survey definitions (Seed) into LimeSurvey import files (TSV):
 
-1. **Load & Validate** – validate_seed() checks and normalizes the seed (internally using load_seed() to support multiple input formats such as YAML files, folders, or R lists).
+1. **Load & Validate** – validate_seed() checks and normalizes the seed (internally using load_seed() to support multiple input formats such as YAML file, folders with YAML files, or R lists).
 2. **Build** – build_lsdf() compiles the validated seed into a structured data frame.
 3. **Write** – write_lsdf() exports the data frame as a TSV file ready for import.
 
@@ -386,4 +392,32 @@ lst_seed(
   lang = c("en", "de"),
   add_valid = TRUE
 )
+```
+
+---
+
+## Report: Codebook
+
+LimeSeed can also create a Quarto-based codebook for review, documentation, or sharing with collaborators.
+
+There are three ways of creating a codebook:
+```r
+# 1. As part of the whole transformation process
+seed_to_tsv("my_survey.yaml", "output/my_survey.tsv", codebook = "output/my_survey_codebook.html")
+
+# 2. Seed directly to an HTML codebook
+seed_to_codebook("my_survey.yaml", "output/my_survey_codebook.html")
+
+# 3. More control: build once, then render selected languages
+df <- load_seed("my_survey.yaml") |> build_lsdf()
+
+ls_codebook(
+  df,
+  output_file = "output/my_survey_codebook.html",
+  lang = c("en", "de"),
+  fields = c("mandatory", "hidden"),
+  html_mode = "render",
+  toc = TRUE
+)
+
 ```

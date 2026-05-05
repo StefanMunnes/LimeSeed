@@ -1957,11 +1957,11 @@ LS_SETTINGS <- list(
   ),
   "showqnumcode" = list(
     description = list(
-      de = "Fragenummer/Code anzeigen (Y=Nummer, N=Beides verbergen, X=Code). ?UNCERTAIN.",
-      en = "Show question number/code (Y=Number, N=Hide both, X=Code). ?UNCERTAIN."
+      de = "Zeige Fragennummer und/oder Fragencode (N=Nummer, N=Beides verbergen, C=Code, B=Beides). ?UNCERTAIN.",
+      en = "Show question number and/or code (N=Number, N=Hide both, C=Code, B=Both). ?UNCERTAIN."
     ),
     default = "X",
-    valid = c("Y", "N", "X")
+    valid = c("X", "N", "B", "C")
   ),
   "bounceprocessing" = list(
     description = list(

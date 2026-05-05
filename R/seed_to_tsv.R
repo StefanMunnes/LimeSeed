@@ -365,6 +365,16 @@ write_lsdf <- function(df, file) {
 #'   a pre-loaded seed list.  See [load_seed()] for full details.
 #' @param file Path to the output `.tsv` file.  The parent directory must
 #'   already exist; it will not be created automatically.
+#' @param codebook Optional codebook output path. Use `NULL` or `FALSE` to skip
+#'   codebook generation, `TRUE` to write a codebook next to `file`, or a
+#'   character path such as `"codebook.html"`.
+#' @param codebook_options Named list of additional options passed to
+#'   [ls_codebook()] when `codebook` is enabled.
+#' @param test Logical. When `TRUE`, export a test-friendly survey: backward
+#'   navigation enabled, question codes and question-jump index shown, titles
+#'   marked as draft, welcome text prepended with a draft notice when present,
+#'   hidden questions shown with a red `HIDDEN` marker, and mandatory questions
+#'   made optional with a red `MANDATORY` marker.
 #'
 #' @return The written data frame, returned invisibly.  The primary effect
 #'   is the `.tsv` file created at `file`.
@@ -400,19 +410,161 @@ write_lsdf <- function(df, file) {
 #' seed$settings$mandatory        <- "N"
 #' seed$structure$G1$Q2$relevance <- "Q1 == 'yes'"
 #' seed_to_tsv(seed, "output/survey.tsv")   # seed is a valid seed (case 5)
+#' seed_to_tsv(seed, "output/survey.tsv", codebook = "output/codebook.html")
+#' seed_to_tsv(
+#'   seed,
+#'   "output/survey.tsv",
+#'   codebook = "output/codebook.html",
+#'   codebook_options = list(fields = "hidden")
+#' )
+#'
+#' # Export a test version before fielding.
+#' seed_to_tsv(seed, "output/survey-test.tsv", test = TRUE)
 #' }
 #'
 #' @export
-seed_to_tsv <- function(seed, file) {
+seed_to_tsv <- function(
+  seed,
+  file,
+  codebook = NULL,
+  codebook_options = list(),
+  test = FALSE
+) {
   seed <- load_seed(seed)
+  if (!is.logical(test) || length(test) != 1L || is.na(test)) {
+    stop("`test` must be `TRUE` or `FALSE`.")
+  }
+  if (isTRUE(test)) {
+    seed <- apply_test_mode(seed)
+  }
   validate_seed(seed, file = NULL, stop_on_error = TRUE)
   df <- build_lsdf(seed)
   write_lsdf(df, file)
+  if (!is.null(codebook) && !identical(codebook, FALSE)) {
+    if (
+      !is.list(codebook_options) ||
+        (length(codebook_options) > 0L &&
+          (is.null(names(codebook_options)) ||
+            any(!nzchar(names(codebook_options)))))
+    ) {
+      stop("`codebook_options` must be a named list.")
+    }
+    codebook_file <- if (isTRUE(codebook)) {
+      paste0(tools::file_path_sans_ext(file), "_codebook.html")
+    } else {
+      codebook
+    }
+    do.call(
+      ls_codebook,
+      c(list(df = df, output_file = codebook_file), codebook_options)
+    )
+  }
   invisible(df)
 }
 
 
 # ══ Internal helper ═══════════════════════════════════════════════════════════
+
+# Apply test-mode survey changes before validation/building.
+apply_test_mode <- function(seed) {
+  seed$settings$allowprev <- "Y"
+  seed$settings$showqnumcode <- "C"
+  seed$settings$questionindex <- 2L
+  seed$settings$titles <- .test_mode_prefix_values(
+    seed$settings$titles,
+    "DRAFT: "
+  )
+
+  if (.test_mode_has_text(seed$settings$welcomeTexts)) {
+    seed$settings$welcomeTexts <- .test_mode_prefix_values(
+      seed$settings$welcomeTexts,
+      "DRAFT: This is a test version of the survey.<br /><br />"
+    )
+  }
+
+  for (grp_code in names(seed$structure)) {
+    qst_codes <- setdiff(names(seed$structure[[grp_code]]), "groupOptions")
+    for (qst_code in qst_codes) {
+      qst <- seed$structure[[grp_code]][[qst_code]]
+      markers <- character(0)
+
+      if (.test_mode_truthy(qst$hidden)) {
+        qst$hidden <- 0
+        markers <- c(markers, "HIDDEN")
+      }
+      if (.test_mode_mandatory(qst$mandatory)) {
+        qst$mandatory <- "N"
+        markers <- c(markers, "MANDATORY")
+      }
+      if (length(markers) > 0L) {
+        qst$questionTexts <- .test_mode_prefix_text(qst$questionTexts, markers)
+      }
+
+      seed$structure[[grp_code]][[qst_code]] <- qst
+    }
+  }
+
+  seed
+}
+
+.test_mode_truthy <- function(x) {
+  if (is.null(x) || length(x) != 1L || is.na(x)) {
+    return(FALSE)
+  }
+  tolower(as.character(x)) %in% c("1", "true", "t", "yes", "y")
+}
+
+.test_mode_mandatory <- function(x) {
+  if (is.null(x) || length(x) != 1L || is.na(x)) {
+    return(FALSE)
+  }
+  toupper(as.character(x)) %in% c("Y", "S")
+}
+
+.test_mode_has_text <- function(x) {
+  if (is.null(x)) {
+    return(FALSE)
+  }
+  any(nchar(trimws(as.character(unlist(x)))) > 0L)
+}
+
+.test_mode_prefix_text <- function(question_texts, markers) {
+  prefix <- paste0(
+    sprintf(
+      '<span style="color:red;font-weight:bold;">%s</span><br />',
+      markers
+    ),
+    collapse = ""
+  )
+
+  if (is.null(question_texts)) {
+    return(prefix)
+  }
+
+  .test_mode_prefix_values(question_texts, prefix)
+}
+
+.test_mode_prefix_values <- function(texts, prefix) {
+  if (is.null(texts)) {
+    return(prefix)
+  }
+  if (is.null(names(texts))) {
+    text <- paste(as.character(texts), collapse = "")
+    if (startsWith(text, prefix)) {
+      return(text)
+    }
+    return(paste0(prefix, text))
+  }
+
+  lapply(texts, function(txt) {
+    txt <- as.character(txt)
+    if (startsWith(txt, prefix)) {
+      txt
+    } else {
+      paste0(prefix, txt)
+    }
+  })
+}
 
 #' Combine row-lists into the LimeSurvey data frame
 #' @keywords internal

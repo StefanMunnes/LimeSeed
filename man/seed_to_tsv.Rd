@@ -4,7 +4,13 @@
 \alias{seed_to_tsv}
 \title{Export a LimeSeed survey definition to a LimeSurvey TSV import file}
 \usage{
-seed_to_tsv(seed, file)
+seed_to_tsv(
+  seed,
+  file,
+  codebook = NULL,
+  codebook_options = list(),
+  test = FALSE
+)
 }
 \arguments{
 \item{seed}{Survey definition in any format accepted by \code{\link[=load_seed]{load_seed()}}:
@@ -14,6 +20,19 @@ a pre-loaded seed list.  See \code{\link[=load_seed]{load_seed()}} for full deta
 
 \item{file}{Path to the output \code{.tsv} file.  The parent directory must
 already exist; it will not be created automatically.}
+
+\item{codebook}{Optional codebook output path. Use \code{NULL} or \code{FALSE} to skip
+codebook generation, \code{TRUE} to write a codebook next to \code{file}, or a
+character path such as \code{"codebook.html"}.}
+
+\item{codebook_options}{Named list of additional options passed to
+\code{\link[=ls_codebook]{ls_codebook()}} when \code{codebook} is enabled.}
+
+\item{test}{Logical. When \code{TRUE}, export a test-friendly survey: backward
+navigation enabled, question codes and question-jump index shown, titles
+marked as draft, welcome text prepended with a draft notice when present,
+hidden questions shown with a red \code{HIDDEN} marker, and mandatory questions
+made optional with a red \code{MANDATORY} marker.}
 }
 \value{
 The written data frame, returned invisibly.  The primary effect
@@ -50,6 +69,16 @@ seed <- load_seed("path/to/survey.yaml")
 seed$settings$mandatory        <- "N"
 seed$structure$G1$Q2$relevance <- "Q1 == 'yes'"
 seed_to_tsv(seed, "output/survey.tsv")   # seed is a valid seed (case 5)
+seed_to_tsv(seed, "output/survey.tsv", codebook = "output/codebook.html")
+seed_to_tsv(
+  seed,
+  "output/survey.tsv",
+  codebook = "output/codebook.html",
+  codebook_options = list(fields = "hidden")
+)
+
+# Export a test version before fielding.
+seed_to_tsv(seed, "output/survey-test.tsv", test = TRUE)
 }
 
 }

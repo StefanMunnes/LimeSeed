@@ -1,3 +1,7 @@
+# LimeSeed 0.0.6
+
+- create codebooks in different formats with quarto from seed with `seed_to_codebook()` or on the fly with `seed_to_tsv(..., codebook = "codebook.html")`
+- new option for better testing of survey: change default values of survey settings and questions
 
 # LimeSeed 0.0.5
 
