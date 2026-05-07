@@ -1,6 +1,8 @@
 # Recent Development
 
 - codebook options: named `fields` labels, `rm_hidden`, and `rm_vars`
+- bulk question option changes with `set_question_options()` and
+  `seed_to_tsv(..., question_options = list(...))`
 
 
 # LimeSeed 0.0.6

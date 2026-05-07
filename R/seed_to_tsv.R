@@ -370,6 +370,9 @@ write_lsdf <- function(df, file) {
 #'   character path such as `"codebook.html"`.
 #' @param codebook_options Named list of additional options passed to
 #'   [ls_codebook()] when `codebook` is enabled.
+#' @param question_options Named list of question option overrides applied to
+#'   all questions whose resolved type supports the option, before validation
+#'   and building. Invalid or inapplicable values are skipped with warnings.
 #' @param test Logical. When `TRUE`, export a test-friendly survey: backward
 #'   navigation enabled, question codes and question-jump index shown, titles
 #'   marked as draft, welcome text prepended with a draft notice when present,
@@ -417,6 +420,11 @@ write_lsdf <- function(df, file) {
 #'   codebook = "output/codebook.html",
 #'   codebook_options = list(fields = "hidden")
 #' )
+#' seed_to_tsv(
+#'   seed,
+#'   "output/survey.tsv",
+#'   question_options = list(hide_tip = 1, input_size = 4)
+#' )
 #'
 #' # Export a test version before fielding.
 #' seed_to_tsv(seed, "output/survey-test.tsv", test = TRUE)
@@ -428,9 +436,11 @@ seed_to_tsv <- function(
   file,
   codebook = NULL,
   codebook_options = list(),
+  question_options = list(),
   test = FALSE
 ) {
   seed <- load_seed(seed)
+  seed <- set_question_options(seed, question_options)
   if (!is.logical(test) || length(test) != 1L || is.na(test)) {
     stop("`test` must be `TRUE` or `FALSE`.")
   }

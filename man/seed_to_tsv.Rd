@@ -9,6 +9,7 @@ seed_to_tsv(
   file,
   codebook = NULL,
   codebook_options = list(),
+  question_options = list(),
   test = FALSE
 )
 }
@@ -27,6 +28,10 @@ character path such as \code{"codebook.html"}.}
 
 \item{codebook_options}{Named list of additional options passed to
 \code{\link[=ls_codebook]{ls_codebook()}} when \code{codebook} is enabled.}
+
+\item{question_options}{Named list of question option overrides applied to
+all questions whose resolved type supports the option, before validation
+and building. Invalid or inapplicable values are skipped with warnings.}
 
 \item{test}{Logical. When \code{TRUE}, export a test-friendly survey: backward
 navigation enabled, question codes and question-jump index shown, titles
@@ -75,6 +80,11 @@ seed_to_tsv(
   "output/survey.tsv",
   codebook = "output/codebook.html",
   codebook_options = list(fields = "hidden")
+)
+seed_to_tsv(
+  seed,
+  "output/survey.tsv",
+  question_options = list(hide_tip = 1, input_size = 4)
 )
 
 # Export a test version before fielding.

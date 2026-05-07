@@ -129,9 +129,23 @@ seed <- load_seed("my_survey.yaml")
 # Stage 2 — manipulate
 seed$settings$anonymized <- "N"
 seed$structure$Demographics$Age$mandatory <- "Y"
+seed <- set_question_options(seed, list(hide_tip = 1, input_size = 4))
 
 # Stage 3 — compile and export
 seed_to_tsv(seed, "output/my_survey.tsv")
+```
+
+Use `set_question_options()` to bulk-change question options on the seed before
+validation/building. The helper applies each option only to question types that
+support it and warns when an option is unknown or a value is invalid. The same
+bulk override can be passed directly to the wrapper:
+
+```r
+seed_to_tsv(
+  seed,
+  "output/my_survey.tsv",
+  question_options = list(hide_tip = 1, input_size = 4)
+)
 ```
 
 ### Programmatic seed — no YAML file needed
