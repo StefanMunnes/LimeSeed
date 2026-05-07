@@ -9,6 +9,8 @@ ls_codebook(
   output_file = "codebook.html",
   lang = "all",
   fields = NULL,
+  rm_hidden = TRUE,
+  rm_vars = character(),
   html_mode = c("render", "remove", "raw"),
   keep_qmd = FALSE
 )
@@ -23,7 +25,14 @@ ls_codebook(
 \item{fields}{Character vector. Additional fields to include in question
 blocks beyond the fixed defaults (\code{text}, \code{help}, \code{type/scale},
 \code{relevance}), e.g. \code{"mandatory"} or \code{"hidden"}. Empty or missing values
-are not printed.}
+are not printed. Named vectors are supported: values are field names and
+names are the labels printed in the codebook, e.g.
+\code{c("Filter" = "relevance")}.}
+
+\item{rm_hidden}{Logical. Remove hidden question variables from the codebook.}
+
+\item{rm_vars}{Character vector. Question variable names that should not be
+reported in the codebook.}
 
 \item{html_mode}{Character. One of:
 \itemize{

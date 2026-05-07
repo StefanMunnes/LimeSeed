@@ -1,3 +1,8 @@
+# Recent Development
+
+- codebook options: named `fields` labels, `rm_hidden`, and `rm_vars`
+
+
 # LimeSeed 0.0.6
 
 - create codebooks in different formats with quarto from seed with `seed_to_codebook()` or on the fly with `seed_to_tsv(..., codebook = "codebook.html")`

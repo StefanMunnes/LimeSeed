@@ -8,7 +8,12 @@
 #' @param fields Character vector. Additional fields to include in question
 #'   blocks beyond the fixed defaults (`text`, `help`, `type/scale`,
 #'   `relevance`), e.g. `"mandatory"` or `"hidden"`. Empty or missing values
-#'   are not printed.
+#'   are not printed. Named vectors are supported: values are field names and
+#'   names are the labels printed in the codebook, e.g.
+#'   `c("Filter" = "relevance")`.
+#' @param rm_hidden Logical. Remove hidden question variables from the codebook.
+#' @param rm_vars Character vector. Question variable names that should not be
+#'   reported in the codebook.
 #' @param html_mode Character. One of:
 #'   - `"render"`: HTML is rendered after script tags are removed.
 #'   - `"remove"`: All HTML tags and scripts are stripped.
@@ -22,6 +27,8 @@ ls_codebook <- function(
   output_file = "codebook.html",
   lang = "all",
   fields = NULL,
+  rm_hidden = TRUE,
+  rm_vars = character(),
   html_mode = c("render", "remove", "raw"),
   keep_qmd = FALSE
 ) {
@@ -63,6 +70,7 @@ ls_codebook <- function(
   target_qmd <- file.path(output_dir, qmd_file)
 
   df <- .normalize_codebook_df(df)
+  df <- .filter_codebook_df(df, rm_hidden = rm_hidden, rm_vars = rm_vars)
   fields <- .codebook_fields(fields)
 
   avail_langs <- .available_codebook_languages(df)
@@ -185,19 +193,108 @@ seed_to_codebook <- function(
 
 
 .normalize_codebook_fields <- function(fields) {
-  fields <- fields[!is.na(fields) & nzchar(fields)]
+  if (is.null(fields)) {
+    return(character(0L))
+  }
+
+  field_names <- names(fields)
+  if (is.null(field_names)) {
+    field_names <- rep("", length(fields))
+  }
+  fields <- as.character(fields)
+
+  keep <- !is.na(fields) & nzchar(fields)
+  fields <- fields[keep]
+  field_names <- field_names[keep]
+
   fields[fields == "type/scale"] <- "type.scale"
-  unique(fields)
+
+  missing_labels <- is.na(field_names) | !nzchar(field_names)
+  field_names[missing_labels] <- vapply(
+    fields[missing_labels],
+    .field_label,
+    character(1L)
+  )
+
+  out <- stats::setNames(fields, field_names)
+  out[!duplicated(unname(out))]
 }
 
 
 .codebook_default_fields <- function() {
-  c("type.scale", "relevance", "text", "help")
+  c(
+    "Type" = "type.scale",
+    "Filter" = "relevance",
+    "Question text" = "text",
+    "Help text" = "help"
+  )
 }
 
 
 .codebook_fields <- function(fields = NULL) {
-  unique(c(.codebook_default_fields(), .normalize_codebook_fields(fields)))
+  out <- .codebook_default_fields()
+  extra <- .normalize_codebook_fields(fields)
+
+  for (i in seq_along(extra)) {
+    field <- unname(extra[[i]])
+    pos <- match(field, unname(out))
+    if (is.na(pos)) {
+      out <- c(out, extra[i])
+    } else {
+      names(out)[pos] <- names(extra)[i]
+    }
+  }
+
+  out
+}
+
+
+.filter_codebook_df <- function(
+  df,
+  rm_hidden = TRUE,
+  rm_vars = character()
+) {
+  rm_vars <- unique(as.character(rm_vars %||% character()))
+  rm_vars <- rm_vars[!is.na(rm_vars) & nzchar(rm_vars)]
+
+  hidden_vars <- character(0L)
+  if (isTRUE(rm_hidden) && "hidden" %in% names(df)) {
+    hidden_rows <- df$class == "Q" & .codebook_truthy(df$hidden)
+    hidden_vars <- unique(df$name[hidden_rows])
+  }
+
+  rm_questions <- unique(c(rm_vars, hidden_vars))
+  rm_questions <- rm_questions[!is.na(rm_questions) & nzchar(rm_questions)]
+  if (length(rm_questions) == 0L) {
+    return(df)
+  }
+
+  keep <- rep(TRUE, nrow(df))
+  current_question <- ""
+  for (i in seq_len(nrow(df))) {
+    cls <- df$class[[i]]
+    if (identical(cls, "G")) {
+      current_question <- ""
+    } else if (identical(cls, "Q")) {
+      current_question <- df$name[[i]]
+    }
+
+    if (
+      cls %in% c("Q", "SQ", "A") &&
+        nzchar(current_question) &&
+        current_question %in% rm_questions
+    ) {
+      keep[[i]] <- FALSE
+    }
+  }
+
+  df[keep, , drop = FALSE]
+}
+
+
+.codebook_truthy <- function(x) {
+  x <- tolower(trimws(as.character(x)))
+  x %in% c("1", "y", "yes", "true", "t")
 }
 
 
@@ -337,10 +434,19 @@ seed_to_codebook <- function(
     } else if (cls == "Q") {
       current_section <- NULL
       lines <- c(lines, "", sprintf("### %s", name), "")
-      for (f in fields) {
+      field_labels <- names(fields)
+      if (is.null(field_labels)) {
+        field_labels <- rep("", length(fields))
+      }
+      for (i in seq_along(fields)) {
+        f <- unname(fields[[i]])
+        label <- field_labels[[i]]
+        if (!nzchar(label)) {
+          label <- .field_label(f)
+        }
         lines <- c(
           lines,
-          .field_block_lines(block, f, target_langs, mode)
+          .field_block_lines(block, f, label, target_langs, mode)
         )
       }
     } else if (cls %in% c("SQ", "A")) {
@@ -415,6 +521,7 @@ seed_to_codebook <- function(
 .field_block_lines <- function(
   block,
   field,
+  label,
   target_langs,
   mode
 ) {
@@ -423,7 +530,6 @@ seed_to_codebook <- function(
     return(character(0L))
   }
 
-  label <- .field_label(field)
   if (length(values$value) == 1L && !nzchar(values$language[[1L]])) {
     return(c(sprintf("**%s:** %s", label, values$value[[1L]]), ""))
   }

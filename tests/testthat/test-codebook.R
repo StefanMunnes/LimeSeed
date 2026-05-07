@@ -83,17 +83,58 @@ test_that("fields appends requested non-empty fields to fixed defaults", {
   )
 
   expect_equal(
-    fields,
+    unname(fields),
     c("type.scale", "relevance", "text", "help", "mandatory", "hidden")
+  )
+  expect_equal(
+    names(fields),
+    c("Type", "Filter", "Question text", "Help text", "Mandatory", "Hidden")
   )
 })
 
 
 test_that("mandatory is optional, not a fixed default field", {
   expect_equal(
-    LimeSeed:::.codebook_fields(NULL),
+    unname(LimeSeed:::.codebook_fields(NULL)),
     c("type.scale", "relevance", "text", "help")
   )
+})
+
+
+test_that("named fields control printed codebook labels", {
+  df <- suppressMessages(build_lsdf(radio_seed("de")))
+  df$relevance[df$class == "Q" & df$name == "q1"] <- "age > 18"
+
+  body <- LimeSeed:::.generate_qmd_body(
+    df,
+    target_langs = "de",
+    fields = LimeSeed:::.codebook_fields(c("Eligibility" = "relevance")),
+    mode = "render"
+  )
+
+  expect_true(any(trimws(body) == "**Eligibility:** age > 18"))
+  expect_false(any(trimws(body) == "**Filter:** age > 18"))
+})
+
+
+test_that("codebook filter removes hidden questions with descendants", {
+  df <- suppressMessages(build_lsdf(array_seed("de")))
+  df$hidden[df$class == "Q" & df$name == "q1"] <- "1"
+
+  filtered <- LimeSeed:::.filter_codebook_df(df, rm_hidden = TRUE)
+
+  expect_false(any(filtered$class %in% c("Q", "SQ", "A")))
+  expect_true(any(filtered$class == "G"))
+})
+
+
+test_that("codebook filter removes requested variables with descendants", {
+  df <- suppressMessages(build_lsdf(radio_seed("de")))
+
+  filtered <- LimeSeed:::.filter_codebook_df(df, rm_hidden = FALSE, rm_vars = "q1")
+
+  expect_false(any(filtered$class %in% c("Q", "A")))
+  expect_true(any(filtered$class == "G"))
 })
 
 
