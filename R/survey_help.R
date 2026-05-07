@@ -39,10 +39,23 @@
     return("any")
   }
   if (is.function(v)) {
+    label <- attr(v, "lsh_label", exact = TRUE)
+    if (!is.null(label)) {
+      return(label)
+    }
     return("(see docs)")
   }
   s <- paste(as.character(v), collapse = " | ")
   .lsh_trunc(s, max_len)
+}
+
+.lsh_wrap_text <- function(x, width) {
+  lines <- strwrap(as.character(x %||% ""), width = width)
+  if (length(lines) == 0L) {
+    ""
+  } else {
+    lines
+  }
 }
 
 # Extract language-aware description from a type or option spec.
@@ -335,7 +348,7 @@ print.lsh_types_result <- function(x, ...) {
   # Column widths — Option column adapts to the longest name in this result set
   w_name <- min(38L, max(nchar(opt_names))) + 2L
   w_dflt <- 12L
-  w_valid <- 20L
+  w_valid <- 28L
   w_desc <- 60L
 
   # Table header
@@ -358,10 +371,10 @@ print.lsh_types_result <- function(x, ...) {
     }
     lang_star <- if (isTRUE(opt$language)) " \u2605" else ""
     valid_str <- paste0(
-      .lsh_fmt_valid(opt$valid, max_len = w_valid - 1L),
+      .lsh_fmt_valid(opt[["valid"]], max_len = w_valid - 1L),
       lang_star
     )
-    desc_str <- .lsh_trunc(.lsh_desc(opt, lang), w_desc)
+    desc_lines <- .lsh_wrap_text(.lsh_desc(opt, lang), w_desc)
     types_str <- if (is.null(opt$ls_type)) {
       "all"
     } else {
@@ -372,16 +385,33 @@ print.lsh_types_result <- function(x, ...) {
       .lsh_pad(nm, w_name),
       .lsh_pad(dflt, w_dflt),
       .lsh_pad(valid_str, w_valid),
-      .lsh_pad(desc_str, w_desc),
+      .lsh_pad(desc_lines[[1L]], w_desc),
       types_str,
       "\n"
     )
+    if (length(desc_lines) > 1L) {
+      for (desc_line in desc_lines[-1L]) {
+        cat(
+          .lsh_pad("", w_name),
+          .lsh_pad("", w_dflt),
+          .lsh_pad("", w_valid),
+          desc_line,
+          "\n"
+        )
+      }
+    }
   }
 
   cat("\n", .lsh_rule(40L), "\n", sep = "")
-  cat(
-    "\u2605 = multilingual: supply as named list, e.g.  {en: '...', de: '...'}\n\n"
-  )
+  if (any(vapply(opt_names, function(nm) {
+    isTRUE(LS_Q_OPTIONS[[nm]]$language)
+  }, logical(1)))) {
+    cat(
+      "\u2605 = multilingual: supply as named list, e.g.  {en: '...', de: '...'}\n\n"
+    )
+  } else {
+    cat("\n")
+  }
 }
 
 # Build the data.frame returned invisibly by lsh_options()
@@ -395,7 +425,7 @@ print.lsh_types_result <- function(x, ...) {
       } else {
         NA_character_
       },
-      valid = .lsh_fmt_valid(opt$valid, max_len = 200L),
+      valid = .lsh_fmt_valid(opt[["valid"]], max_len = 200L),
       description = .lsh_desc(opt, lang),
       applies_to = if (is.null(opt$ls_type)) {
         "all"
@@ -546,6 +576,7 @@ lsh_options <- function(types = "all", search = NULL, lang = "en") {
     lapply(codes, function(code) names(LS_TYPES[[code]]$options)),
     use.names = FALSE
   ))
+  opt_names <- sort(opt_names)
 
   # Apply search filter — names and descriptions in both languages
   if (!is.null(search)) {
@@ -565,6 +596,7 @@ lsh_options <- function(types = "all", search = NULL, lang = "en") {
       },
       opt_names
     )
+    opt_names <- sort(opt_names)
 
     if (length(opt_names) == 0L) {
       message(sprintf(

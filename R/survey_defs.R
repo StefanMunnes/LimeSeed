@@ -328,6 +328,17 @@ LS_QUESTION_TYPES <- list(
 #
 # ?UNCERTAIN marks cases where only one example value was observed.
 
+.ls_valid_character <- function(x) is.character(x) && length(x) == 1L
+attr(.ls_valid_character, "lsh_label") <- "character"
+
+.ls_valid_numeric <- function(x) {
+  if (is.numeric(x)) {
+    return(TRUE)
+  }
+  grepl("^-?[0-9]+(\\.[0-9]+)?$", trimws(as.character(x)))
+}
+attr(.ls_valid_numeric, "lsh_label") <- "numeric"
+
 LS_Q_OPTIONS <- list(
   # ══ Options valid for ALL types ═══════════════════════════════════════════
 
@@ -1577,6 +1588,100 @@ LS_Q_OPTIONS <- list(
     ls_type = c("!", "L", "O", "Q", "R", "S", "T", "U")
   )
 )
+
+
+.ls_q_character_options <- c(
+  "relevance",
+  "cssclass",
+  "printable_help",
+  "random_group",
+  "question_theme_name",
+  "em_validation_q",
+  "em_validation_q_tip",
+  "em_validation_sq",
+  "em_validation_sq_tip",
+  "regex_validation",
+  "prefix",
+  "suffix",
+  "location_defaultcoordinates",
+  "location_mapservice",
+  "slider_custom_handle",
+  "slider_separator",
+  "date_format",
+  "date_min",
+  "date_max",
+  "equation",
+  "other_replace_text",
+  "category_separator",
+  "array_filter",
+  "array_filter_exclude",
+  "exclude_all_others",
+  "dualscale_headerA",
+  "dualscale_headerB",
+  "dropdown_prepostfix",
+  "dropdown_separators",
+  "parent_order",
+  "rank_title",
+  "choice_title",
+  "time_limit_countdown_message",
+  "time_limit_timer_style",
+  "time_limit_message",
+  "time_limit_message_style",
+  "time_limit_warning_message",
+  "time_limit_warning_style",
+  "time_limit_warning_2_message",
+  "time_limit_warning_2_style"
+)
+
+.ls_q_numeric_options <- c(
+  "maximum_chars",
+  "text_input_width",
+  "display_rows",
+  "input_size",
+  "text_input_columns",
+  "label_input_columns",
+  "location_mapwidth",
+  "location_mapheight",
+  "min_num_value_n",
+  "max_num_value_n",
+  "equals_num_value",
+  "min_num_value",
+  "max_num_value",
+  "slider_min",
+  "slider_max",
+  "slider_accuracy",
+  "slider_default",
+  "dropdown_dates_minute_step",
+  "display_columns",
+  "answer_width",
+  "answer_width_bycolumn",
+  "dropdown_size",
+  "min_answers",
+  "max_answers",
+  "repeat_headings",
+  "multiflexible_min",
+  "multiflexible_max",
+  "multiflexible_step",
+  "choice_input_columns",
+  "max_subquestions",
+  "assessment_value",
+  "time_limit",
+  "time_limit_message_delay",
+  "time_limit_warning",
+  "time_limit_warning_display_time",
+  "time_limit_warning_2",
+  "time_limit_warning_2_display_time"
+)
+
+for (nm in .ls_q_character_options) {
+  LS_Q_OPTIONS[[nm]]$valid <- .ls_valid_character
+}
+
+for (nm in .ls_q_numeric_options) {
+  LS_Q_OPTIONS[[nm]]$valid <- .ls_valid_numeric
+}
+
+rm(.ls_q_character_options, .ls_q_numeric_options)
 
 
 # ══ Derived objects ═══════════════════════════════════════════════════════════

@@ -1,9 +1,13 @@
-# Recent Development
+# LimeSeed 0.0.7
 
 - codebook options: named `fields` labels, `rm_hidden`, and `rm_vars`
 - bulk question option changes with `set_question_options()` and
   `seed_to_tsv(..., question_options = list(...))`
-
+- `lsh_options()` now prints options alphabetically, wraps long descriptions,
+  and only shows the multilingual footnote when multilingual options are listed
+- question option metadata now declares `valid` value types explicitly in
+  `survey_defs.R`, so helper output shows values such as `character` and
+  `numeric` instead of falling back to `any`
 
 # LimeSeed 0.0.6
 
@@ -20,7 +24,7 @@
 
 # LimeSeed 0.0.3
 
-- new naming convetion: remove sprout, all seed
+- new naming convention: remove sprout, all seed
 - standalone `validate_seed()` function with line by line reportign and df export
 
 # LimeSeed 0.0.2

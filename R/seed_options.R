@@ -26,6 +26,10 @@
 #' @export
 set_question_options <- function(seed, question_options = list()) {
   seed <- load_seed(seed)
+  .apply_question_options(seed, question_options, warn = TRUE)
+}
+
+.apply_question_options <- function(seed, question_options = list(), warn = TRUE) {
   .assert_named_list(question_options, "question_options")
 
   if (length(question_options) == 0L) {
@@ -35,15 +39,16 @@ set_question_options <- function(seed, question_options = list()) {
   option_names <- names(question_options)
   unknown_options <- setdiff(option_names, names(LS_Q_OPTIONS))
   for (opt_name in unknown_options) {
-    warning(
+    .option_warning(
+      warn,
       "`",
       opt_name,
-      "` is not a known LimeSurvey question option; skipped.",
-      call. = FALSE
+      "` is not a known LimeSurvey question option; skipped."
     )
   }
 
   applicable_counts <- stats::setNames(integer(length(option_names)), option_names)
+  checked_options <- setdiff(option_names, unknown_options)
 
   for (grp_code in names(seed$structure)) {
     qst_codes <- setdiff(names(seed$structure[[grp_code]]), "groupOptions")
@@ -54,17 +59,17 @@ set_question_options <- function(seed, question_options = list()) {
       ls_type <- resolve_question_type(qst_code, qst)
 
       if (is.null(ls_type)) {
-        warning(
+        .option_warning(
+          warn,
           loc_q,
-          ": could not resolve question type; bulk question options skipped.",
-          call. = FALSE
+          ": could not resolve question type; bulk question options skipped."
         )
         next
       }
 
       type_opts <- LS_TYPES[[ls_type]]$options %||% list()
 
-      for (opt_name in setdiff(option_names, unknown_options)) {
+      for (opt_name in checked_options) {
         opt_spec <- type_opts[[opt_name]]
         if (is.null(opt_spec)) {
           next
@@ -74,14 +79,14 @@ set_question_options <- function(seed, question_options = list()) {
         opt_value <- question_options[[opt_name]]
 
         if (!.question_option_value_is_valid(opt_value, opt_spec)) {
-          warning(
+          .option_warning(
+            warn,
             loc_q,
             "$",
             opt_name,
             ": value ",
             .format_option_value(opt_value),
-            " is not valid; skipped.",
-            call. = FALSE
+            " is not valid; skipped."
           )
           next
         }
@@ -93,18 +98,24 @@ set_question_options <- function(seed, question_options = list()) {
     }
   }
 
-  for (opt_name in setdiff(option_names, unknown_options)) {
+  for (opt_name in checked_options) {
     if (identical(applicable_counts[[opt_name]], 0L)) {
-      warning(
+      .option_warning(
+        warn,
         "`",
         opt_name,
-        "` does not apply to any question in this seed; skipped.",
-        call. = FALSE
+        "` does not apply to any question in this seed; skipped."
       )
     }
   }
 
   seed
+}
+
+.option_warning <- function(warn, ...) {
+  if (isTRUE(warn)) {
+    warning(..., call. = FALSE)
+  }
 }
 
 .assert_named_list <- function(x, arg) {
