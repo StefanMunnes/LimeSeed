@@ -8,7 +8,6 @@ ls_codebook(
   df,
   output_file = "codebook.html",
   lang = "all",
-  toc = TRUE,
   fields = NULL,
   html_mode = c("render", "remove", "raw"),
   keep_qmd = FALSE
@@ -20,8 +19,6 @@ ls_codebook(
 \item{output_file}{Character. Default: \code{"codebook.html"}.}
 
 \item{lang}{Character vector. \code{"all"} or specific codes like \code{c("en", "de")}.}
-
-\item{toc}{Logical. Include a table of contents.}
 
 \item{fields}{Character vector. Additional fields to include in question
 blocks beyond the fixed defaults (\code{text}, \code{help}, \code{type/scale},

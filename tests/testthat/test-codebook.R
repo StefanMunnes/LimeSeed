@@ -30,13 +30,17 @@ test_that("codebook body groups multilingual structural rows together", {
   expect_equal(sum(grepl("^### q1$", body)), 1L)
   expect_true(any(grepl("\\*\\*\\[en\\]\\*\\* Group", body)))
   expect_true(any(body_trim == "**Question text:**"))
-  expect_true(any(body_trim == "[de] Frage"))
-  expect_true(any(body_trim == "[en] Question"))
+  expect_true(any(body == "  **[de]** Frage  "))
+  expect_true(any(body == "  **[en]** Question  "))
   expect_true(any(body_trim == "**Type:** radio"))
   expect_true(any(body_trim == "**Hidden:** 1"))
   expect_true(any(body_trim == "**Answer options:**"))
+  expect_true(any(body == "  **1**  "))
+  expect_true(any(body == "    **[de]** Ja  "))
+  expect_true(any(body == "    **[en]** Yes  "))
   expect_false(any(body_trim == "**Filter:** 1"))
   expect_false(any(grepl("^- \\*\\*", body)))
+  expect_false(any(grepl("<table", body, fixed = TRUE)))
 })
 
 
@@ -69,8 +73,7 @@ test_that("codebook body formats subquestions as indented content blocks", {
   expect_equal(sum(grepl("^### q1$", body)), 1L)
   expect_true(any(body_trim == "**Type:** array"))
   expect_true(any(body_trim == "**Subquestions:**"))
-  expect_true(any(body_trim == "sq1"))
-  expect_true(any(body_trim == "[de] Item 1"))
+  expect_true(any(body == "  **sq1:** Item 1  "))
 })
 
 
@@ -114,5 +117,46 @@ test_that("codebook rejects output files without extension", {
   expect_error(
     LimeSeed::ls_codebook(df, output_file = "survey"),
     "must include a file extension"
+  )
+})
+
+
+test_that("codebook preserves primary-language fallback text from build_lsdf", {
+  df <- suppressMessages(build_lsdf(bilingual_seed()))
+
+  body <- LimeSeed:::.generate_qmd_body(
+    df,
+    target_langs = "en",
+    fields = LimeSeed:::.codebook_fields(NULL),
+    mode = "render"
+  )
+
+  body_text <- paste(body, collapse = "\n")
+  expect_match(body_text, "Question")
+  expect_match(body_text, "Yes")
+  expect_match(body_text, "Nein")
+})
+
+
+test_that("choice block includes relevance when present", {
+  df <- suppressMessages(build_lsdf(array_seed("de")))
+  df$relevance[df$class == "SQ" & df$name == "sq1"] <- "q0 == 1"
+
+  body <- LimeSeed:::.generate_qmd_body(
+    df,
+    target_langs = "de",
+    fields = LimeSeed:::.codebook_fields(NULL),
+    mode = "render"
+  )
+
+  body_text <- paste(body, collapse = "\n")
+  expect_match(body_text, "q0 == 1", fixed = TRUE)
+})
+
+
+test_that("markdown hard breaks are added to each physical line", {
+  expect_equal(
+    LimeSeed:::.markdown_hardbreak("a\nb"),
+    "a  \nb  "
   )
 })

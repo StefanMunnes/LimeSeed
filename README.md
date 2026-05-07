@@ -416,8 +416,7 @@ ls_codebook(
   output_file = "output/my_survey_codebook.html",
   lang = c("en", "de"),
   fields = c("mandatory", "hidden"),
-  html_mode = "render",
-  toc = TRUE
+  html_mode = "render"
 )
 
 ```

@@ -5,4 +5,4 @@
 ^old
 ^img
 ^misc
-^inst
+^inst/extdata/.*\.yml$
