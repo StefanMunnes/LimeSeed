@@ -15,7 +15,7 @@ test_that("set_question_options applies valid options to supporting questions", 
   expect_false("input_size" %in% names(changed$structure$grp1$q1))
   expect_equal(changed$structure$grp1$q2$hide_tip, 1)
   expect_equal(changed$structure$grp1$q2$input_size, 4)
-  expect_false("hide_tip" %in% names(changed$structure$grp1$q3))
+  expect_equal(changed$structure$grp1$q3$hide_tip, 1)
   expect_false("input_size" %in% names(changed$structure$grp1$q3))
 })
 

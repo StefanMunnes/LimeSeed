@@ -37,7 +37,8 @@ test_that("lsh_options wraps descriptions and prints multilingual note only when
 })
 
 test_that("question option valid types are declared in survey_defs", {
-  capture.output(text_df <- lsh_options("S", search = "regex_validation", lang = "en"))
+  capture.output(text_df <- lsh_options("S", search = "validation", lang = "en"))
+  text_df <- text_df[text_df$option == "validation", , drop = FALSE]
   capture.output(numeric_df <- lsh_options("S", search = "input_size", lang = "en"))
   capture.output(style_df <- lsh_options("S", search = "time_limit_timer_style", lang = "en"))
   capture.output(delay_df <- lsh_options("S", search = "time_limit_message_delay", lang = "en"))
@@ -48,9 +49,50 @@ test_that("question option valid types are declared in survey_defs", {
 
   expect_equal(missing_valid, character())
   expect_equal(text_df$valid, "character")
-  expect_equal(numeric_df$valid, "numeric")
+  expect_equal(numeric_df$valid, "positive integer")
   expect_equal(style_df$valid, "character")
   expect_equal(delay_df$valid, "numeric")
+})
+
+test_that("positive-integer question options validate and print consistently", {
+  expect_true(.ls_valid_positive_integer(1L))
+  expect_true(.ls_valid_positive_integer("12"))
+  expect_false(.ls_valid_positive_integer(0))
+  expect_false(.ls_valid_positive_integer(-1))
+  expect_false(.ls_valid_positive_integer(1.5))
+  expect_false(.ls_valid_positive_integer("text"))
+  expect_equal(.lsh_fmt_valid(.ls_valid_positive_integer), "positive integer")
+})
+
+test_that("question-option validators accept their documented value forms", {
+  expect_true(.ls_valid_nonnegative_integer(0))
+  expect_false(.ls_valid_nonnegative_integer(-1))
+  expect_true(.ls_valid_number_or_expression(1.5))
+  expect_true(.ls_valid_number_or_expression("Q1 + 2"))
+  expect_false(.ls_valid_number_or_expression(""))
+  expect_true(.ls_valid_input_width(""))
+  expect_true(.ls_valid_input_width(12))
+  expect_false(.ls_valid_input_width(13))
+  expect_true(.ls_valid_label_width("hidden"))
+  expect_equal(.lsh_fmt_valid(.ls_valid_nonnegative_integer), "non-negative integer")
+  expect_equal(.lsh_fmt_valid(.ls_valid_number_or_expression), "number or expression")
+})
+
+test_that("question-option metadata matches LimeSurvey definitions", {
+  expect_equal(LS_Q_OPTIONS$answer_order$ls_type, c("!", "L", "O"))
+  expect_equal(
+    LS_Q_OPTIONS$answer_order$valid,
+    c("normal", "random", "alphabetical", "random_alphabetical")
+  )
+  expect_equal(LS_Q_OPTIONS$subquestion_order$ls_type, c("M", "P", "R"))
+  expect_equal(LS_Q_OPTIONS$encrypted$valid, c("Y", "N"))
+  expect_equal(LS_Q_OPTIONS$mandatory$valid, c("Y", "N", "S"))
+  expect_equal(LS_Q_OPTIONS$show_totals$valid, c("X", "R", "C", "B"))
+
+  # Version metadata is intentionally retained for future version filtering.
+  expect_equal(LS_Q_OPTIONS$answer_order$version, "5.5.0")
+  expect_equal(LS_Q_OPTIONS$subquestion_order$version, "6.16.0")
+  expect_equal(LS_Q_OPTIONS$random_order$version, "<5.5.0")
 })
 
 test_that("lsh_settings returns matching setting metadata in the requested language", {

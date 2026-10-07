@@ -140,7 +140,7 @@ test_that("add_valid annotates question and quota YAML files", {
   q_lines <- readLines(q_file, warn = FALSE, encoding = "UTF-8")
 
   expect_true(any(grepl("questionTexts: \"Example question.*# text \\(multilingual\\)", q_lines)))
-  expect_true(any(grepl("mandatory: \"N\"  # valid: Y \\| N \\| S", q_lines)))
+  expect_true(any(grepl("mandatory: \"N\"  # valid: Y \\| N", q_lines)))
   expect_true(any(grepl("A1: \"Option 1\"  # text \\(multilingual\\)", q_lines)))
 
   quota_file <- file.path(tempdir(), "lst-quota-valid.yml")

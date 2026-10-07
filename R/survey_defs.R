@@ -52,6 +52,10 @@ LS_QUESTION_TYPES <- list(
       "Dropdown-Liste",
       "Dropdown"
     ),
+    description = list(
+      de = "Einfachauswahl (mit einer klappbaren Liste).",
+      en = "Single-choice dropdown list."
+    ),
     requires = "answerOptions",
     quota = TRUE
   ),
@@ -81,7 +85,12 @@ LS_QUESTION_TYPES <- list(
       "list with comment",
       "list (with comment)",
       "Liste mit Kommentar",
-      "Liste (mit Kommentar)"
+      "Liste (mit Kommentar)",
+      "Liste mit Freitext"
+    ),
+    description = list(
+      de = "Liste mit Kommentar",
+      en = "List with comment"
     ),
     requires = "answerOptions",
     quota = TRUE
@@ -96,7 +105,13 @@ LS_QUESTION_TYPES <- list(
       "text (huge)",
       "Riesiger Freitext",
       "Freitext (riesig)",
+      "Ausführlicher Text",
+      "Ausführlicher Freitext",
       "Text (riesig)"
+    ),
+    description = list(
+      de = "Textangabe mit mehreren Zeilen.",
+      en = "Text input with multiple lines."
     )
   ),
   "S" = list(
@@ -106,6 +121,7 @@ LS_QUESTION_TYPES <- list(
       "free text (short)",
       "text (short)",
       "Kurzer Freitext",
+      "Kurzer freier Text",
       "Freitext (kurz)",
       "Text (kurz)"
     ),
@@ -122,18 +138,28 @@ LS_QUESTION_TYPES <- list(
       "text (long)",
       "Langer Text",
       "Langer Freitext",
+      "Langer freier Text",
       "Freitext (lang)",
       "Text (lang)"
+    ),
+    description = list(
+      de = "Langer Freitextangabe",
+      en = "Long free text input."
     )
   ),
   "Q" = list(
     labels = c(
       "multiple short text",
       "short text (multiple)",
+      "Mehrfache kurze Texte",
       "Mehrere kurze Texte",
       "Mehrere kurze Freitexte",
       "Mehrere Texte",
       "Kurzer Text (mehrfach)"
+    ),
+    description = list(
+      de = "Mehrere kurze Textangaben pro Frage",
+      en = "More than one text entry per question"
     ),
     requires = "subquestions"
   ),
@@ -147,13 +173,60 @@ LS_QUESTION_TYPES <- list(
       "Datei-Upload",
       "Datei",
       "Hochladen"
+    ),
+    description = list(
+      de = "Datei hochladen.",
+      en = "Upload file."
     )
   ),
-  "D" = list(labels = c("date", "Datum", "Datum/Zeit")),
-  "G" = list(labels = c("gender", "Geschlecht"), quota = TRUE),
-  "*" = list(labels = c("equation", "Gleichung"), quota = TRUE),
+  "D" = list(
+    labels = c(
+      "date",
+      "time",
+      "date/time",
+      "Datum",
+      "Datum/Zeit"
+    ),
+    description = list(
+      de = "Datum, Uhrzeit oder eine Kombination aus Datum und Uhrzeit.",
+      en = "Date, time or a combination of both date and time."
+    )
+  ),
+  "G" = list(
+    labels = c(
+      "gender",
+      "Geschlecht"
+    ),
+    description = list(
+      de = "Diese Frage erfasst das Geschlecht ('männlich' oder 'weiblich').",
+      en = "This question collects gender ('male' or 'female')."
+    ),
+    quota = TRUE
+  ),
+  "*" = list(
+    labels = c(
+      "equation",
+      "Gleichung"
+    ),
+    description = list(
+      de = "Gleichung erstellen und diese in einer Datenbankvariablen speichern.",
+      en = "Creates an enquation and saves it in a database variable."
+    ),
+    quota = TRUE
+  ),
   "Y" = list(
-    labels = c("yes/no", "yes no", "yes, no", "Ja/Nein", "Ja Nein", "Ja, Nein"),
+    labels = c(
+      "yes/no",
+      "yes no",
+      "yes, no",
+      "Ja/Nein",
+      "Ja Nein",
+      "Ja, Nein"
+    ),
+    description = list(
+      de = "Erfasst 'Ja' oder 'Nein'.",
+      en = "Collects 'Yes' or 'No' responses."
+    ),
     quota = TRUE
   ),
   "K" = list(
@@ -162,28 +235,65 @@ LS_QUESTION_TYPES <- list(
       "multiple numerical input",
       "slider",
       "Mehrfache numerische Eingabe",
+      "Mehrfach numerisch",
       "Schieberegler"
+    ),
+    description = list(
+      de = "Mehrere Textboxen mit jeweils numerischen Eingaben. Schiebregler möglich.",
+      en = "Multiple text boxes, each for numerical input. Allows slider."
     ),
     requires = "subquestions"
   ),
   "R" = list(
-    labels = c("ranking", "Reihenfolge", "Rangfolge"),
+    labels = c(
+      "ranking",
+      "Reihenfolge",
+      "Rangfolge"
+    ),
+    description = list(
+      de = "Optionsliste, die angeordnet werden kann.",
+      en = "List of possible answers/options, which can be ranked."
+    ),
     requires = "answerOptions"
   ),
   "I" = list(
-    labels = c("language switch", "language", "Sprachauswahl", "Sprache"),
+    labels = c(
+      "language switch",
+      "language",
+      "change language",
+      "Sprachauswahl",
+      "Sprache",
+      "Sprachwechsel"
+    ),
+    description = list(
+      de = "Sprache der Befragung wechseln.",
+      en = "Changes the language of the survey."
+    ),
     quota = TRUE
   ),
   "X" = list(
-    labels = c("text display", "boilerplate", "Textanzeige", "Nur Text"),
+    labels = c(
+      "Text display",
+      "Just text",
+      "Boilerplate",
+      "Textanzeige",
+      "Nur Text"
+    ),
     description = list(
       de = "Nur Text, keine Eingabe.",
       en = "Read-only text display."
     )
   ),
   "N" = list(
-    labels = c("numerical input", "Zahleneingabe", "Numerische Eingabe"),
-    description = list(de = "Numerische Eingabe.", en = "Numeric input.")
+    labels = c(
+      "numerical input",
+      "Zahleneingabe",
+      "Numerische Eingabe"
+    ),
+    description = list(
+      de = "Erfasst eine Zahl.",
+      en = "Collects a single number."
+    )
   ),
 
   # ── Array types ───────────────────────────────────────────────────────────
@@ -192,9 +302,14 @@ LS_QUESTION_TYPES <- list(
       "array dual scale",
       "array (dual scale)",
       "Matrix (Zwei Skalen)",
-      "Matrix duale Skala"
+      "Matrix duale Skala",
+      "Dual Matrix"
     ),
-    requires = c("subquestions", "answerOptions")
+    requires = c("subquestions", "answerOptions"),
+    description = list(
+      de = "Matrixfrage mit zwei Skalen für jede Teilfrage.",
+      en = "Matrix / array question with two scales for each subquestion."
+    )
   ),
   "F" = list(
     labels = c(
@@ -216,6 +331,10 @@ LS_QUESTION_TYPES <- list(
       "10-Punkte-Matrix"
     ),
     requires = "subquestions",
+    description = list(
+      de = "Matrixfrage mit vordefinierter Skala von 1 bis 10.",
+      en = "Matrix / array question prefilled with a scale from 1 to 10."
+    ),
     quota = TRUE
   ),
   "A" = list(
@@ -227,6 +346,10 @@ LS_QUESTION_TYPES <- list(
       "5-Punkte-Matrix"
     ),
     requires = "subquestions",
+    description = list(
+      de = "Matrixfrage mit vordefinierter Skala von 1 bis 5.",
+      en = "Matrix / array question prefilled with a scale from 1 to 5."
+    ),
     quota = TRUE
   ),
   "C" = list(
@@ -235,20 +358,34 @@ LS_QUESTION_TYPES <- list(
       "array (yes/no/uncertain)",
       "yes/no/uncertain array",
       "Matrix (Ja/Nein/Unsicher)",
-      "Ja/Nein/Unsicher-Matrix"
+      "Ja/Nein/Unsicher-Matrix",
+      "Matrix Ja Nein Unsicher"
     ),
-    requires = "subquestions"
+    requires = "subquestions",
+    description = list(
+      de = "Matrixfrage mit vordefinierten Antworten ('Ja', 'Nein', 'Unsicher').",
+      en = "Matrix / array question prefilled with answers ('yes', 'no', 'uncertain')."
+    )
   ),
   ";" = list(
     labels = c(
       "array text",
-      "array (flexible labels) multiple texts",
+      "array texts",
+      "array (texts)",
+      "array (flexible labels)",
+      "array (multiple texts",
       "multiple texts array",
+      "Matrix (Text)",
       "Matrix (Texte)",
-      "Matrix (Flexible Beschriftungen) Mehrere Texteingabefelder",
+      "Matrix (Flexible Beschriftungen)",
+      "Matrix (Mehrere Texteingabefelder",
       "Text-Matrix"
     ),
-    requires = c("subquestions", "answerOptions")
+    requires = c("subquestions", "answerOptions"),
+    description = list(
+      de = "Matrixfrage mit Textfeldern.",
+      en = "Matrix / array with text boxes."
+    )
   ),
   ":" = list(
     labels = c(
@@ -261,25 +398,40 @@ LS_QUESTION_TYPES <- list(
       "Dropdown-Matrix",
       "Zahlen-Matrix"
     ),
-    requires = c("subquestions", "answerOptions")
+    requires = c("subquestions", "answerOptions"),
+    description = list(
+      de = "Matrixfrage mit nummerierten Dropdown-Boxen.",
+      en = "Matrix / array question with numbered dropdown boxes."
+    )
   ),
   "E" = list(
     labels = c(
       "array increase same decrease",
       "array (increase/same/decrease)",
       "increase/same/decrease array",
-      "Matrix (Zunahme/Gleich/Abnahme)"
+      "Matrix (Zunahme/Gleich/Abnahme)",
+      "Matrix Zunahme Gleich Abnahme",
+      "Zunahme Gleich Abnahme Matrix"
     ),
-    requires = "subquestions"
+    requires = "subquestions",
+    description = list(
+      de = "Matrixfrage mit vordefinierten Antwortmöglichkeiten - 'Zunahme', 'Gleich' und 'Abnahme'.",
+      en = "Matrix / array question prefilled with the answers 'increase', 'same' and 'decrease'."
+    )
   ),
   "H" = list(
     labels = c(
       "array by column",
       "array (flexible labels) by column",
       "Matrix (nach Spalte)",
-      "Spalten-Matrix"
+      "Spalten-Matrix",
+      "Matrix nach Spalte"
     ),
-    requires = c("subquestions", "answerOptions")
+    requires = c("subquestions", "answerOptions"),
+    description = list(
+      de = "Matrixfrage mit Teilfragen als Spalten und Antwortoptionen als Zeilen.",
+      en = "Matrix / array question with subquestions in the columns and answers in the rows."
+    )
   ),
 
   # ── Multiple types ────────────────────────────────────────────────────────
@@ -328,24 +480,133 @@ LS_QUESTION_TYPES <- list(
 #
 # ?UNCERTAIN marks cases where only one example value was observed.
 
-.ls_valid_character <- function(x) is.character(x) && length(x) == 1L
+.ls_valid_character <- function(x) {
+  is.character(x) && length(x) == 1L && !is.na(x)
+}
 attr(.ls_valid_character, "lsh_label") <- "character"
 
 .ls_valid_numeric <- function(x) {
+  if (length(x) != 1L || is.na(x)) {
+    return(FALSE)
+  }
   if (is.numeric(x)) {
-    return(TRUE)
+    return(is.finite(x))
   }
   grepl("^-?[0-9]+(\\.[0-9]+)?$", trimws(as.character(x)))
 }
 attr(.ls_valid_numeric, "lsh_label") <- "numeric"
 
+.ls_valid_integer <- function(x) {
+  if (length(x) != 1L || is.na(x)) {
+    return(FALSE)
+  }
+  grepl("^-?[0-9]+$", trimws(as.character(x)))
+}
+attr(.ls_valid_integer, "lsh_label") <- "integer"
+
+.ls_valid_positive_integer <- function(x) {
+  if (length(x) != 1L || is.na(x)) {
+    return(FALSE)
+  }
+  grepl("^[1-9][0-9]*$", trimws(as.character(x)))
+}
+attr(.ls_valid_positive_integer, "lsh_label") <- "positive integer"
+
+.ls_valid_nonnegative_integer <- function(x) {
+  if (length(x) != 1L || is.na(x)) {
+    return(FALSE)
+  }
+  grepl("^[0-9]+$", trimws(as.character(x)))
+}
+attr(.ls_valid_nonnegative_integer, "lsh_label") <- "non-negative integer"
+
+.ls_valid_number_or_expression <- function(x) {
+  length(x) == 1L &&
+    !is.na(x) &&
+    ((is.numeric(x) && is.finite(x)) ||
+      (is.character(x) && nzchar(trimws(x))))
+}
+attr(.ls_valid_number_or_expression, "lsh_label") <- "number or expression"
+
+.ls_valid_input_width <- function(x) {
+  length(x) == 1L &&
+    !is.na(x) &&
+    (identical(as.character(x), "") || as.character(x) %in% as.character(1:12))
+}
+attr(.ls_valid_input_width, "lsh_label") <- "default or 1-12"
+
+.ls_valid_label_width <- function(x) {
+  length(x) == 1L &&
+    !is.na(x) &&
+    (as.character(x) %in% c("", "hidden", as.character(1:12)))
+}
+attr(.ls_valid_label_width, "lsh_label") <- "default, hidden, or 1-12"
+
 LS_Q_OPTIONS <- list(
+  # ══ Options available from the 4. Version on ══════════════════════════════
+
+  "answer_order" = list(
+    description = list(
+      de = "Reihenfolge der Antwortoptionen: normal, random, alphabetical oder random_alphabetical.",
+      en = "Answer option order: normal, random, alphabetical, or random_alphabetical."
+    ),
+    ls_type = c("!", "L", "O"),
+    valid = c("normal", "random", "alphabetical", "random_alphabetical"),
+    version = "5.5.0"
+  ),
+
+  "encrypted" = list(
+    description = list(
+      de = "Datenverschlüsselung für entsprechende Antworten ermöglichen. Standard = ausgeschaltet",
+      en = "Enable data encryption for corresponding responses. Standard = off"
+    ),
+    ls_type = c(
+      "5", "!", "L", "O", "D", "G", "Y", "K", "R", "I", "N",
+      "1", "F", "B", "A", "C", ";", ":", "E", "H", "M", "P",
+      "Q", "S", "T", "U", "|", "*"
+    ),
+    default = "N",
+    valid = c("Y", "N"),
+    version = "4"
+  ),
+
+  "subquestion_order" = list(
+    description = list(
+      de = "Reihenfolge der Teilfragen: normal, random, alphabetical oder random_alphabetical.",
+      en = "Subquestion order: normal, random, alphabetical, or random_alphabetical."
+    ),
+    ls_type = c("M", "P", "R"),
+    default = "normal",
+    valid = c("normal", "random", "alphabetical", "random_alphabetical"),
+    version = "6.16.0"
+  ),
+
+  "question_theme_name" = list(
+    description = list(
+      de = "Name des Fragenthemas (LS 6+), z.B. 'bootstrap_buttons'.",
+      en = "Question theme name (LS 6+ only), e.g. 'bootstrap_buttons'."
+    ),
+    valid = .ls_valid_character,
+    version = 5
+  ),
+
   # ══ Options valid for ALL types ═══════════════════════════════════════════
 
+  "text" = list(
+    description = list(
+      de = "Fragetext",
+      en = "Question text."
+    ),
+    valid = .ls_valid_character
+  ),
+
   "mandatory" = list(
-    description = list(de = "Pflichtfrage.", en = "Mandatory question."),
+    description = list(
+      de = "Pflichtfrage (N = nein, Y = ja, S = weiche Pflichtfrage).",
+      en = "Mandatory question (N = no, Y = yes, S = soft mandatory)."
+    ),
     default = "N",
-    valid = c("Y", "N", "S") # S = soft mandatory
+    valid = c("Y", "N", "S")
   ),
 
   "relevance" = list(
@@ -353,14 +614,16 @@ LS_Q_OPTIONS <- list(
       de = "Anzeige-Bedingung (ExpressionScript, ohne {}). Standard: 1 = immer zeigen.",
       en = "Display condition (ExpressionScript, without {}). Default: 1 = always show."
     ),
-    default = "1" # free-form ExpressionScript
+    default = "1", # free-form ExpressionScrip
+    valid = .ls_valid_character
   ),
 
   "cssclass" = list(
     description = list(
-      de = "Benutzerdefinierte CSS-Klasse(n) für den Fragecontainer.",
-      en = "Custom CSS class(es) for the question container."
-    )
+      de = "Benutzerdefinierte CSS-Klasse(n).",
+      en = "Custom CSS class(es)."
+    ),
+    valid = .ls_valid_character
   ),
 
   "hidden" = list(
@@ -376,6 +639,11 @@ LS_Q_OPTIONS <- list(
       de = "Seitenumbruch vor dieser Frage einfügen (nur Druckmodus; 1 = ja).",
       en = "Insert a page break before this question in print mode (1 = yes)."
     ),
+    ls_type = c(
+      "5", "!", "*", "L", "O", "D", "G", "Y", "K", "R", "X", "N",
+      "1", "F", "B", "A", "C", ";", ":", "E", "H", "M", "P", "Q",
+      "S", "T", "U", "|"
+    ),
     valid = c(0, 1)
   ),
 
@@ -383,13 +651,41 @@ LS_Q_OPTIONS <- list(
     description = list(
       de = "Hilfetext für die Druckansicht.",
       en = "Help text for the print view."
-    )
+    ),
+    ls_type = c(
+      "5",
+      "!",
+      "*",
+      "L",
+      "O",
+      "D",
+      "G",
+      "Y",
+      "K",
+      "R",
+      "N",
+      "1",
+      "F",
+      "B",
+      "A",
+      "C",
+      ":",
+      "E",
+      "H",
+      "M",
+      "P"
+    ),
+    language = TRUE
   ),
 
   "public_statistics" = list(
     description = list(
       de = "Frage in öffentlicher Statistik anzeigen (1 = ja, 0 = nein).",
       en = "Show question in public statistics (1 = yes, 0 = no)."
+    ),
+    ls_type = c(
+      "1", "5", "A", "B", "C", "E", "F", "G", "H", "K", "L", "M",
+      "N", "O", "P", "R", "Y", "!", ":", "*"
     ),
     valid = c(0, 1)
   ),
@@ -398,7 +694,13 @@ LS_Q_OPTIONS <- list(
     description = list(
       de = "Randomisierungsgruppe: Fragen gleicher Gruppe werden zufällig sortiert.",
       en = "Randomisation group: questions in the same group are shown in random order."
-    )
+    ),
+    ls_type = c(
+      "1", "5", "A", "B", "C", "D", "E", "F", "G", "H", "I", "K",
+      "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "X", "Y",
+      "!", ":", ";", "|"
+    ),
+    valid = .ls_valid_character
   ),
 
   "statistics_showgraph" = list(
@@ -411,43 +713,40 @@ LS_Q_OPTIONS <- list(
 
   "statistics_graphtype" = list(
     description = list(
-      de = "Grafiktyp für die Statistikansicht (1–5). ?UNCERTAIN: weitere Werte möglich.",
-      en = "Graph type for the statistics view (1–5). ?UNCERTAIN: further values possible."
+      de = "Grafiktyp für die Statistikansicht (0 = Balkendiagramm, 1 = Tortendiagramm, 2 = Radar, 3 = Linie, 4 = Polar, 5 = Doughnut)",
+      # CHECK - Diagrammtyp wird in Fragenübersicht als string angezeigt - muss noch in Tabelle geprüft werden
+      en = "Graph type for the statistics view (0 = Bar chart, 1 = Pie chart, 2 = Radar, 3 = Line, 4 = PolarArea, 5 = Doughnut)"
     ),
-    valid = 1:5
+    ls_type = c(
+      "1", "5", "A", "B", "C", "D", "E", "F", "G", "H", "I", "K",
+      "L", "M", "N", "O", "Q", "R", "S", "T", "U", "X", "Y", "!",
+      ":", ";", "|", "*"
+    ),
+    valid = 0:5
   ),
 
   "scale_export" = list(
     description = list(
-      de = "Antwortskala exportieren (1, 2, 3). ?UNCERTAIN: genaue Bedeutung je Wert.",
-      en = "Answer scale export mode (1, 2, 3). ?UNCERTAIN: exact meaning per value."
+      de = "Für SPSS. Überschreibt die vom SPSS geratenen Standardskala mit der angegebenen Skala (0 = ausgeschaltet, 1 = Nominal, 2 = Ordinal, 3 = Skala).",
+      en = "For SPSS. Overrides the default scale guessed by SPSS to the defined scale (0 = off, 1 = Nominal, 2 = Ordinal, 3 = Scale)."
     ),
     ls_type = c(
       "!",
+      "L",
+      "O",
+      "G",
       "*",
       "1",
-      "5",
-      "A",
-      "B",
-      "C",
-      "E",
+      "Y",
       "F",
-      "G",
+      "C",
+      ":",
+      "E",
       "H",
-      "L",
       "M",
-      "O",
-      "P",
-      "Y"
+      "P"
     ),
-    valid = 1:3
-  ),
-
-  "question_theme_name" = list(
-    description = list(
-      de = "Name des Fragenthemas (LS 6+), z.B. 'bootstrap_buttons'.",
-      en = "Question theme name (LS 6+ only), e.g. 'bootstrap_buttons'."
-    )
+    valid = 0:3
   ),
 
   # ══ hide_tip (all except equation *) ══════════════════════════════════════
@@ -483,6 +782,8 @@ LS_Q_OPTIONS <- list(
       "S",
       "T",
       "U",
+      "X",
+      "|",
       "Y"
     ),
     valid = c(0, 1)
@@ -492,20 +793,21 @@ LS_Q_OPTIONS <- list(
 
   "em_validation_q" = list(
     description = list(
-      de = "Frage-Validierungsgleichung (Boolean ExpressionScript).",
-      en = "Question-level validation equation (Boolean ExpressionScript)."
+      de = "Frage-Validierungsgleichung (Boolean ExpressionScript ohne {}).",
+      en = "Question-level validation equation (Boolean ExpressionScript without {})."
     ),
     ls_type = c(
       "!",
-      "1",
       ":",
+      ";",
       "A",
       "B",
       "C",
       "D",
       "E",
       "F",
-      "H",
+      "G",
+      "I",
       "K",
       "L",
       "M",
@@ -516,7 +818,11 @@ LS_Q_OPTIONS <- list(
       "R",
       "S",
       "T",
-      "U"
+      "U",
+      "X",
+      "Y",
+      "5",
+      "*"
     )
   ),
 
@@ -527,15 +833,16 @@ LS_Q_OPTIONS <- list(
     ),
     ls_type = c(
       "!",
-      "1",
       ":",
+      ";",
       "A",
       "B",
       "C",
       "D",
       "E",
       "F",
-      "H",
+      "G",
+      "I",
       "K",
       "L",
       "M",
@@ -546,17 +853,21 @@ LS_Q_OPTIONS <- list(
       "R",
       "S",
       "T",
-      "U"
+      "U",
+      "X",
+      "Y",
+      "5",
+      "*"
     ),
     language = TRUE
   ),
 
   "em_validation_sq" = list(
     description = list(
-      de = "Unterfragevalidierungsgleichung (Boolean ExpressionScript).",
-      en = "Subquestion-level validation equation (Boolean ExpressionScript)."
+      de = "Unterfragevalidierungsgleichung (Boolean ExpressionScript) ohne {}.",
+      en = "Subquestion-level validation equation (Boolean ExpressionScript) without {}."
     ),
-    ls_type = c(":", "K", "N", "Q", "S", "T", "U")
+    ls_type = c(":", ";", "K", "N", "Q", "S", "T", "U")
   ),
 
   "em_validation_sq_tip" = list(
@@ -564,16 +875,17 @@ LS_Q_OPTIONS <- list(
       de = "Hinweistext zur Unterfragevalidierungsgleichung.",
       en = "Tip shown to participants describing the subquestion validation equation."
     ),
-    ls_type = c(":", "K", "N", "Q", "S", "T", "U"),
+    ls_type = c(":", ";", "K", "N", "Q", "S", "T", "U"),
     language = TRUE
   ),
 
-  "regex_validation" = list(
+  "validation" = list(
     description = list(
       de = "Regulärer Ausdruck zur Antwortvalidierung.",
       en = "Regular expression for validating the response."
     ),
-    ls_type = c("N", "Q", "S", "T", "U")
+    ls_type = c("N", "Q", "S", "T", "U", ";", ":", "K"),
+    valid = .ls_valid_character
   ),
 
   # ══ Prefix / suffix ═══════════════════════════════════════════════════════
@@ -584,6 +896,7 @@ LS_Q_OPTIONS <- list(
       en = "Text displayed before the input field (e.g. currency symbol)."
     ),
     ls_type = c("K", "N", "Q", "S"),
+    valid = .ls_valid_character,
     language = TRUE
   ),
 
@@ -593,6 +906,7 @@ LS_Q_OPTIONS <- list(
       en = "Text displayed after the input field (e.g. 'years', 'kg')."
     ),
     ls_type = c("K", "N", "Q", "S"),
+    valid = .ls_valid_character,
     language = TRUE
   ),
 
@@ -603,15 +917,17 @@ LS_Q_OPTIONS <- list(
       de = "Maximale Zeichenanzahl für die Texteingabe.",
       en = "Maximum number of characters allowed in the text input."
     ),
-    ls_type = c(":", "K", "N", "Q", "S", "T", "U") # any positive integer
+    ls_type = c(":", "K", "N", "Q", "S", "T", "U", ";"),
+    valid = .ls_valid_positive_integer
   ),
 
   "text_input_width" = list(
     description = list(
-      de = "Breite des Texteingabefelds (in em).",
-      en = "Width of the text input field (in em)."
+      de = "Relative Breite des Texteingabefelds (Standard oder Stufe 1–12).",
+      en = "Relative width of the text input field (default or level 1–12)."
     ),
-    ls_type = c("K", "N", "Q", "S", "T", "U")
+    ls_type = c("K", "N", "S", "T", "U", ";"),
+    valid = .ls_valid_input_width
   ),
 
   "display_rows" = list(
@@ -619,7 +935,8 @@ LS_Q_OPTIONS <- list(
       de = "Anzahl der sichtbaren Zeilen des Textfelds.",
       en = "Number of visible rows in the text area."
     ),
-    ls_type = c("Q", "S", "T", "U")
+    ls_type = c("Q", "S", "T", "U"),
+    valid = .ls_valid_positive_integer
   ),
 
   "numbers_only" = list(
@@ -627,32 +944,35 @@ LS_Q_OPTIONS <- list(
       de = "Nur Zahlen akzeptieren (1 = ja, 0 = nein).",
       en = "Accept numbers only (1 = yes, 0 = no)."
     ),
-    ls_type = c("*", "Q", "S"),
+    ls_type = c("*", "Q", "S", ";"),
     valid = c(0, 1)
   ),
 
   "input_size" = list(
     description = list(
-      de = "Breite des Eingabefelds (in Zeichen). Für M: Breite des Sonstiges-Felds.",
-      en = "Width of the input field (in characters). For M: width of the Other field."
+      de = "Breite des Eingabefelds (in Zeichen).",
+      en = "Width of the input field (in characters)."
     ),
-    ls_type = c(":", "K", "M", "N", "Q", "S", "T", "U")
+    ls_type = c(":", "K", "M", "N", "Q", "S", "T", "U", ";"),
+    valid = .ls_valid_positive_integer
   ),
 
   "text_input_columns" = list(
     description = list(
-      de = "Anzahl der Spalten des Textbereichs.",
-      en = "Number of columns of the text area."
+      de = "Breite des Texteingabeboxes.",
+      en = "Width of the text input box."
     ),
-    ls_type = c("P", "Q")
+    ls_type = c("P", "Q"),
+    valid = .ls_valid_input_width
   ),
 
   "label_input_columns" = list(
     description = list(
-      de = "Anzahl der Spalten für Beschriftungseingaben.",
-      en = "Number of columns for label inputs."
+      de = "Relative Breite der Beschriftungsspalte (Standard, hidden oder Stufe 1–12).",
+      en = "Relative label/subquestion width (default, hidden, or level 1–12)."
     ),
-    ls_type = c("K", "Q")
+    ls_type = "Q",
+    valid = .ls_valid_label_width
   ),
 
   "location_city" = list(
@@ -664,9 +984,11 @@ LS_Q_OPTIONS <- list(
     valid = c(0, 1)
   ),
 
+  # ══ Location (only for S) ════════════════════════════════════════════════
+
   "location_state" = list(
     description = list(
-      de = "Bundesland/Staat-Feld in der Kartenauswahl aktivieren (1 = ja).",
+      de = "Bundesland/Gliedstaat-Feld in der Kartenauswahl aktivieren (1 = ja).",
       en = "Enable state field in map picker (1 = yes)."
     ),
     ls_type = "S",
@@ -692,41 +1014,53 @@ LS_Q_OPTIONS <- list(
 
   "location_mapservice" = list(
     description = list(
-      de = "Kartendienst-ID. ?UNCERTAIN: genaue Werte je Dienst.",
-      en = "Map service ID. ?UNCERTAIN: exact values per service."
+      de = "Kartendienst-ID. 0 = ausgeschaltet, 100 = Openstreet-Maps, 1 = GoogleMaps.",
+      en = "Map service ID. 0 = none, 100 = Openstreet-Maps, 1 = GoogleMaps."
     ),
-    ls_type = "S"
+    ls_type = "S",
+    valid = c(0, 1, 100)
   ),
 
   "location_mapwidth" = list(
     description = list(
-      de = "Breite der Karte (in Pixeln).",
-      en = "Width of the map (in pixels)."
+      de = "Breite der Karte (in Pixeln, default = 500).",
+      en = "Width of the map (in pixels, default = 500)."
     ),
-    ls_type = "S"
+    ls_type = "S",
+    valid = .ls_valid_numeric
   ),
 
   "location_mapheight" = list(
     description = list(
-      de = "Höhe der Karte (in Pixeln).",
-      en = "Height of the map (in pixels)."
+      de = "Höhe der Karte (in Pixeln, , default = 300).",
+      en = "Height of the map (in pixels, default = 300)."
     ),
-    ls_type = "S"
+    ls_type = "S",
+    valid = .ls_valid_numeric
   ),
 
   "location_mapzoom" = list(
     description = list(
-      de = "Standard-Zoom-Stufe der Karte (0–21).",
-      en = "Default zoom level of the map (0–21)."
+      de = "Standard-Zoom-Stufe der Karte (0–19).",
+      en = "Default zoom level of the map (0–19)."
     ),
     ls_type = "S",
-    valid = 0:21
+    valid = 0:19
   ),
 
   "location_nodefaultfromip" = list(
     description = list(
       de = "Keine Standard-Koordinaten aus IP-Adresse ableiten (1 = ja).",
       en = "Do not derive default coordinates from IP address (1 = yes)."
+    ),
+    ls_type = "S",
+    valid = c(0, 1)
+  ),
+
+  "location_postal" = list(
+    description = list(
+      de = "Postleitzahl in der Tabelle mit den Umfrageergebnissen speichern. Nur mit Google Map und einem gültigen Google-Map API Schlüssel nutzbar.",
+      en = "Store postal code in the survey results table. Only usuable with google map and a valid google map API key. "
     ),
     ls_type = "S",
     valid = c(0, 1)
@@ -748,7 +1082,8 @@ LS_Q_OPTIONS <- list(
       de = "Minimalwert für numerische Eingabe.",
       en = "Minimum allowed value for numeric input."
     ),
-    ls_type = c("K", "N")
+    ls_type = c("K", "N"),
+    valid = .ls_valid_number_or_expression
   ),
 
   "max_num_value_n" = list(
@@ -756,7 +1091,8 @@ LS_Q_OPTIONS <- list(
       de = "Maximalwert für numerische Eingabe.",
       en = "Maximum allowed value for numeric input."
     ),
-    ls_type = c("K", "N")
+    ls_type = c("K", "N"),
+    valid = .ls_valid_number_or_expression
   ),
 
   "num_value_int_only" = list(
@@ -773,7 +1109,8 @@ LS_Q_OPTIONS <- list(
       de = "Pflicht-Gesamtsumme für multiple numerische Eingabe.",
       en = "Required total sum for multiple numerical input."
     ),
-    ls_type = "K"
+    ls_type = "K",
+    valid = .ls_valid_number_or_expression
   ),
 
   "value_range_allows_missing" = list(
@@ -790,7 +1127,8 @@ LS_Q_OPTIONS <- list(
       de = "Minimalwert (ältere LS3-Syntax, bevorzuge min_num_value_n).",
       en = "Minimum value (legacy LS3 syntax; prefer min_num_value_n)."
     ),
-    ls_type = "K"
+    ls_type = "K",
+    valid = .ls_valid_number_or_expression
   ),
 
   "max_num_value" = list(
@@ -798,55 +1136,60 @@ LS_Q_OPTIONS <- list(
       de = "Maximalwert (ältere LS3-Syntax, bevorzuge max_num_value_n).",
       en = "Maximum value (legacy LS3 syntax; prefer max_num_value_n)."
     ),
-    ls_type = "K"
+    ls_type = "K",
+    valid = .ls_valid_number_or_expression
   ),
 
   # ══ Slider (K) ════════════════════════════════════════════════════════════
 
   "slider_min" = list(
     description = list(
-      de = "Minimalwert des Sliders.",
+      de = "Minimalwert des Schiebereglers.",
       en = "Minimum slider value."
     ),
-    ls_type = "K"
+    ls_type = "K",
+    valid = .ls_valid_number_or_expression
   ),
 
   "slider_max" = list(
     description = list(
-      de = "Maximalwert des Sliders.",
+      de = "Maximalwert des Schiebereglers.",
       en = "Maximum slider value."
     ),
-    ls_type = "K"
+    ls_type = "K",
+    valid = .ls_valid_number_or_expression
   ),
 
   "slider_accuracy" = list(
     description = list(
-      de = "Schrittweite des Sliders.",
+      de = "Schrittweite des Schiebereglers.",
       en = "Step size of the slider."
     ),
-    ls_type = "K"
-  ),
-
-  "slider_default" = list(
-    description = list(
-      de = "Standardposition des Sliders.",
-      en = "Default position of the slider handle."
-    ),
-    ls_type = "K"
+    ls_type = "K",
+    valid = .ls_valid_number_or_expression
   ),
 
   "slider_default_set" = list(
     description = list(
-      de = "Standard des Sliders aktivieren (1 = ja, 0 = nein).",
-      en = "Activate slider default position (1 = yes, 0 = no)."
+      de = "Stellt ein, dass der Anfangswert des Schiebereglers gespeichert wird, wenn der Schieberegler nicht bewegt wird (nein = 0, ja = 1 - Standard)",
+      en = "Set the initial value that will be stored in the database. (no = 0, yes = 1 - Standard)"
     ),
     ls_type = "K",
     valid = c(0, 1)
   ),
 
+  "slider_default" = list(
+    description = list(
+      de = "Schieberegler Anfangswert definieren (Zahlen oder Expression ohne geschweifte Klammern)",
+      en = "Choses a initial position of the slider as a value. (Numbers or expressions without curly brackets)"
+    ),
+    ls_type = "K",
+    valid = .ls_valid_number_or_expression
+  ),
+
   "slider_middlestart" = list(
     description = list(
-      de = "Slider startet in der Mitte (1 = ja, 0 = nein).",
+      de = "Schieberegler startet in der Mitte (1 = ja, 0 = nein).",
       en = "Slider starts in the middle (1 = yes, 0 = no)."
     ),
     ls_type = "K",
@@ -855,42 +1198,43 @@ LS_Q_OPTIONS <- list(
 
   "slider_layout" = list(
     description = list(
-      de = "Slider-Layout (1 = Standard). ?UNCERTAIN: weitere Werte möglich.",
-      en = "Slider layout (1 = default). ?UNCERTAIN: further values possible."
+      de = "Schieberegler benutzen (1 = Standard, nicht benutzen).",
+      en = "Use Slider layout (1 = default, not use). "
     ),
     ls_type = "K",
-    valid = 1:3 # ?UNCERTAIN
+    valid = c(0, 1)
   ),
 
   "slider_handle" = list(
     description = list(
-      de = "Slider-Handle-Typ (1 = Standard). ?UNCERTAIN: weitere Werte möglich.",
-      en = "Slider handle type (1 = default). ?UNCERTAIN: further values possible."
+      de = "Schieberegler-Handle-Typ (0 = Kreis - Standard, 1 = Quadrat, 2 = Dreieck, 3 = Angepasst).",
+      en = "Slider handle type (0 = Circle - Standard, 1 - Square, 2 = Triangle, 3 - Custom)."
     ),
     ls_type = "K",
-    valid = 1:3 # ?UNCERTAIN
+    valid = 0:3
   ),
 
   "slider_custom_handle" = list(
     description = list(
-      de = "Benutzerdefinierter Slider-Handle (Font Awesome Icon-Code).",
-      en = "Custom slider handle (Font Awesome icon code)."
+      de = "Benutzerdefinierter Schieberegler-Handle mit Font Awesome Icon-Code (Davor 'Angepasst' als Griff-Form auswählen).",
+      en = "Custom slider handle with Font Awesome icon code (To use it, select 'custom' from the handle shape dropdown list)."
     ),
-    ls_type = "K"
+    ls_type = "K",
+    valid = .ls_valid_character
   ),
 
   "slider_orientation" = list(
     description = list(
-      de = "Slider-Ausrichtung (1 = horizontal). ?UNCERTAIN: 2 = vertikal?",
-      en = "Slider orientation (1 = horizontal). ?UNCERTAIN: 2 = vertical?"
+      de = "Schieberegler-Ausrichtung (0 = horizontal - Standard), 1 = vertikal",
+      en = "Slider orientation (0 = horizontal - Standard). 1 = vertical"
     ),
     ls_type = "K",
-    valid = c(1, 2) # ?UNCERTAIN
+    valid = c(0, 1)
   ),
 
   "slider_reversed" = list(
     description = list(
-      de = "Slider-Richtung umkehren (1 = ja, 0 = nein).",
+      de = "Schieberegler-Richtung umkehren (1 = ja, 0 = nein).",
       en = "Reverse slider direction (1 = yes, 0 = no)."
     ),
     ls_type = "K",
@@ -899,7 +1243,7 @@ LS_Q_OPTIONS <- list(
 
   "slider_reset" = list(
     description = list(
-      de = "Schaltfläche zum Zurücksetzen des Sliders anzeigen (1 = ja, 0 = nein).",
+      de = "Schaltfläche zum Zurücksetzen des Schiebereglers anzeigen (1 = ja, 0 = nein).",
       en = "Show reset button for slider (1 = yes, 0 = no)."
     ),
     ls_type = "K",
@@ -908,7 +1252,7 @@ LS_Q_OPTIONS <- list(
 
   "slider_showminmax" = list(
     description = list(
-      de = "Min-/Max-Werte am Slider anzeigen (1 = ja, 0 = nein).",
+      de = "Min-/Max-Werte am Schieberegler anzeigen (1 = ja, 0 = nein).",
       en = "Show min/max values on slider (1 = yes, 0 = no)."
     ),
     ls_type = "K",
@@ -917,29 +1261,87 @@ LS_Q_OPTIONS <- list(
 
   "slider_separator" = list(
     description = list(
-      de = "Trennzeichen zwischen Slider-Werten (Freitext).",
+      de = "Trennzeichen zwischen Schieberegler-Werten (Freitext).",
       en = "Separator character between slider values (free text)."
     ),
-    ls_type = "K"
+    ls_type = "K",
+    valid = .ls_valid_character
   ),
 
   "slider_rating" = list(
     description = list(
-      de = "Slider-Bewertungsmodus für 5-Punkte-Auswahl (1, 2). ?UNCERTAIN: genaue Werte.",
-      en = "Slider rating mode for 5-point choice (1, 2). ?UNCERTAIN: exact values."
+      de = "Darstellung der 5-Punkte-Auswahl (0 = aus, 1 = Sterne, 2 = Schieberegler mit Emoticon).",
+      en = "Five-point choice display (0 = off, 1 = stars, 2 = slider with emoticon)."
     ),
     ls_type = "5",
-    valid = c(1, 2) # ?UNCERTAIN
+    valid = 0:2
+  ),
+
+  # ══ File Upload (|) ══════════════════════════════════════════════════════════
+
+  "allowed_filetypes" = list(
+    description = list(
+      de = "Erlaubte Dateiformaten eingeben.",
+      en = "Enter the file types allowed to be uploaded by the respondent."
+    ),
+    ls_type = "|",
+    valid = .ls_valid_character
+  ),
+
+  "max_filesize" = list(
+    description = list(
+      de = "Maximale Dateigröße - bis zum 131072 KB.",
+      en = "Maximum file size for upload - Limesurvey supports max. 131072 KB."
+    ),
+    ls_type = "|",
+    valid = .ls_valid_positive_integer
+  ),
+
+  "max_num_of_files" = list(
+    description = list(
+      de = "Maximale Dateianzahl.",
+      en = "Maximum number of files."
+    ),
+    ls_type = "|",
+    valid = .ls_valid_positive_integer
+  ),
+
+  "min_num_of_files" = list(
+    description = list(
+      de = "Minimale Dateianzahl.",
+      en = "Minimal number of files"
+    ),
+    ls_type = "|",
+    valid = .ls_valid_nonnegative_integer
+  ),
+
+  "show_comment" = list(
+    description = list(
+      de = "Zeigt Kommentartextfeld für Kommentaren zur hochgeladener Datei an. (1 = ja - Standard)",
+      en = "Displays a comment text box where the respondent can enter any comments on the uploaded file. (1 = yes - Standard)"
+    ),
+    ls_type = "|",
+    valid = c(0, 1)
+  ),
+
+  "show_title" = list(
+    description = list(
+      de = "Zeigt eine Titelbox für die hochgeladene Datei an. (1 = ja - Standard)",
+      en = "Displays a title textbox for the uploaded file. (1 = yes - Standard)"
+    ),
+    ls_type = "|",
+    valid = c(0, 1)
   ),
 
   # ══ Date/time (D) ═════════════════════════════════════════════════════════
 
   "date_format" = list(
     description = list(
-      de = "Datumsformat (PHP date()-Formatstring, z.B. 'Y-m-d').",
-      en = "Date format (PHP date() format string, e.g. 'Y-m-d')."
+      de = "Benutzdefiniertes Datums- und Zeitformat setzen (z.B. 'Y-m-d', 'HH/MM').",
+      en = "Specify a custom date or time format. (e.g. 'Y-m-d', 'HH/MM')."
     ),
-    ls_type = "D"
+    ls_type = "D",
+    valid = .ls_valid_character
   ),
 
   "date_min" = list(
@@ -947,7 +1349,8 @@ LS_Q_OPTIONS <- list(
       de = "Frühestes erlaubtes Datum (im konfigurierten Datumsformat).",
       en = "Earliest allowed date (in the configured date format)."
     ),
-    ls_type = "D"
+    ls_type = "D",
+    valid = .ls_valid_character
   ),
 
   "date_max" = list(
@@ -955,13 +1358,14 @@ LS_Q_OPTIONS <- list(
       de = "Spätestes erlaubtes Datum (im konfigurierten Datumsformat).",
       en = "Latest allowed date (in the configured date format)."
     ),
-    ls_type = "D"
+    ls_type = "D",
+    valid = .ls_valid_character
   ),
 
   "dropdown_dates" = list(
     description = list(
-      de = "Datum per Dropdown-Menüs auswählen (1 = ja, 0 = nein).",
-      en = "Use dropdown pickers for date input (1 = yes, 0 = no)."
+      de = "Datum per Dropdown-Menüs auswählen (1 = ja, leer = nein).",
+      en = "Use dropdown pickers for date input (1 = yes, empty = no)."
     ),
     ls_type = "D",
     valid = c(0, 1)
@@ -977,17 +1381,17 @@ LS_Q_OPTIONS <- list(
 
   "dropdown_dates_month_style" = list(
     description = list(
-      de = "Monatsdarstellung im Dropdown (1 = Zahl). ?UNCERTAIN: 2 = Text?",
-      en = "Month display style in dropdown (1 = number). ?UNCERTAIN: 2 = text?"
+      de = "Monatsdarstellung im Dropdown (0 = Kurzmonatsname, 1 = Vollmonatsname, 2 = Zahl).",
+      en = "Month display style in dropdown (0 = Short names, 1 = Full names, 2 = Number)."
     ),
     ls_type = "D",
-    valid = c(1, 2) # ?UNCERTAIN
+    valid = c(0, 1, 2)
   ),
 
   "reverse" = list(
     description = list(
-      de = "Antwortskala umkehren (1 = ja, 0 = nein). Gilt für D und :",
-      en = "Reverse the answer scale (1 = yes, 0 = no). Applies to D and :"
+      de = "Antwortskala umkehren (1 = ja, 0 = nein). Gilt für Datum und Matrix (Zahlen)",
+      en = "Reverse the answer scale (1 = yes, 0 = no). Applies to Date and Array (Number)"
     ),
     ls_type = c("D", ":"),
     valid = c(0, 1)
@@ -997,19 +1401,19 @@ LS_Q_OPTIONS <- list(
 
   "display_type" = list(
     description = list(
-      de = "Anzeigetyp für Ja/Nein (1 = Standard). ?UNCERTAIN: weitere Werte möglich.",
-      en = "Display type for Yes/No (1 = default). ?UNCERTAIN: further values possible."
+      de = "Anzeigetyp für Ja/Nein (0 = Standard Tastebutton; 1 = Radiolist).",
+      en = "Display type for Yes/No (0 = Standard Buttongroup, 1 = Radiolist)."
     ),
-    ls_type = "Y",
-    valid = c(1, 2) # ?UNCERTAIN
+    ls_type = c("G", "Y"),
+    valid = c(0, 1)
   ),
 
   # ══ Equation (*) ══════════════════════════════════════════════════════════
 
   "equation" = list(
     description = list(
-      de = "ExpressionScript-Gleichung (ohne geschweifte Klammern).",
-      en = "ExpressionScript equation (without curly braces)."
+      de = "Ergebnis der eingegebenen Ausdruck in der Antworttabelle speichern. Es können alle Sprachen einschließlich ExpressionScript verwendet werden (ohne geschweifte Klammern).",
+      en = "Store the result of the expression in the response table. All languages inlcuding ExpressionScript can be used (without curly braces)."
     ),
     ls_type = "*"
   ),
@@ -1032,6 +1436,7 @@ LS_Q_OPTIONS <- list(
       en = "Label for the 'Other' input (overrides the default 'Other' label)."
     ),
     ls_type = c("!", "L", "M", "P"),
+    valid = .ls_valid_character,
     language = TRUE
   ),
 
@@ -1067,7 +1472,8 @@ LS_Q_OPTIONS <- list(
       de = "Anzahl der Spalten für die Antwortoptionen.",
       en = "Number of columns used to display answer options."
     ),
-    ls_type = c("L", "M")
+    ls_type = c("L", "M"),
+    valid = .ls_valid_positive_integer
   ),
 
   "answer_width" = list(
@@ -1075,7 +1481,8 @@ LS_Q_OPTIONS <- list(
       de = "Breite der Antwortoption-Beschriftung (in Prozent).",
       en = "Width of the answer option label (percentage)."
     ),
-    ls_type = c("1", "A", "B", "C", "E", "F", "L", "M", "R")
+    ls_type = c("1", "A", "B", "C", "E", "F", ";", ":"),
+    valid = 1:100
   ),
 
   "answer_width_bycolumn" = list(
@@ -1083,7 +1490,8 @@ LS_Q_OPTIONS <- list(
       de = "Antwortbreite pro Spalte (in Prozent) für Matrix nach Spalte.",
       en = "Answer width per column (percentage) for array-by-column."
     ),
-    ls_type = "H"
+    ls_type = "H",
+    valid = 1:100
   ),
 
   "category_separator" = list(
@@ -1096,11 +1504,11 @@ LS_Q_OPTIONS <- list(
 
   "dropdown_prefix" = list(
     description = list(
-      de = "Präfix-Text für Klappbox-Einträge (1 = ja). ?UNCERTAIN: Wertbedeutung.",
-      en = "Prefix text for dropdown entries (1 = yes). ?UNCERTAIN: exact meaning."
+      de = "Präfix-Text für Klappbox-Einträge (1 = Antwortoptionen werden numeriert). ",
+      en = "Prefix text for dropdown entries (1 = answer options are numbered)."
     ),
     ls_type = "!",
-    valid = c(0, 1) # ?UNCERTAIN
+    valid = c(0, 1)
   ),
 
   "dropdown_size" = list(
@@ -1108,7 +1516,8 @@ LS_Q_OPTIONS <- list(
       de = "Anzahl der sichtbaren Einträge in der Klappbox.",
       en = "Number of visible entries in the dropdown list."
     ),
-    ls_type = "!"
+    ls_type = "!",
+    valid = .ls_valid_positive_integer
   ),
 
   "use_dropdown" = list(
@@ -1124,37 +1533,10 @@ LS_Q_OPTIONS <- list(
 
   "random_order" = list(
     description = list(
-      de = "Antwortoptionen/Unterzeilen zufällig sortieren (1 = ja, 0 = nein).",
+      de = "Antwortoptionen/Teilfragen zufällig sortieren (1 = ja, 0 = nein).",
       en = "Display answer options/subquestion rows in random order (1 = yes, 0 = no)."
     ),
     ls_type = c(
-      "!",
-      "1",
-      ":",
-      "A",
-      "B",
-      "C",
-      "E",
-      "F",
-      "H",
-      "K",
-      "L",
-      "M",
-      "O",
-      "P",
-      "Q",
-      "R"
-    ),
-    valid = c(0, 1)
-  ),
-
-  "array_filter" = list(
-    description = list(
-      de = "Fragencode, dessen Antworten als Filter für Unterzeilen dienen.",
-      en = "Question code whose answers filter which subquestions are shown."
-    ),
-    ls_type = c(
-      "!",
       "1",
       ":",
       ";",
@@ -1163,12 +1545,37 @@ LS_Q_OPTIONS <- list(
       "C",
       "E",
       "F",
+      "H",
       "K",
-      "L",
       "M",
+      "O",
       "P",
+      "Q"
+    ),
+    valid = c(0, 1),
+    version = "<5.5.0"
+  ),
+
+  "array_filter" = list(
+    description = list(
+      de = "Antworten einer Multiple-Choice-Frage als Teilfragen einer nachfolgenden Listen-, Array- oder Multiple-Choice-Frage verwenden. (Frage- und Antwortcodes eingeben)",
+      en = "Use responses of multiple choice question as subquestions of a subsequent list, array or multiple choice question. (enter the question and the answer codes)"
+    ),
+    ls_type = c(
+      "L",
       "Q",
-      "R"
+      "K",
+      "R",
+      "1",
+      "F",
+      "B",
+      "A",
+      "C",
+      ";",
+      ":",
+      "E",
+      "M",
+      "P"
     )
   ),
 
@@ -1178,7 +1585,6 @@ LS_Q_OPTIONS <- list(
       en = "Like array_filter but inverts the filter logic."
     ),
     ls_type = c(
-      "!",
       "1",
       ":",
       ";",
@@ -1198,11 +1604,10 @@ LS_Q_OPTIONS <- list(
 
   "array_filter_style" = list(
     description = list(
-      de = "Stil der Array-Filterung (1 = ausblenden). ?UNCERTAIN: weitere Werte.",
-      en = "Array filter style (1 = hide). ?UNCERTAIN: further values possible."
+      de = "Stil der Array-Filterung (0 = default (nicht zeigen) 1 = grau einfärben).",
+      en = "Array filter style (0 = default (not show) 1 = grey out)."
     ),
     ls_type = c(
-      "!",
       "1",
       ":",
       ";",
@@ -1218,15 +1623,15 @@ LS_Q_OPTIONS <- list(
       "Q",
       "R"
     ),
-    valid = c(1, 2) # ?UNCERTAIN
+    valid = c(0, 1)
   ),
 
   "exclude_all_others" = list(
     description = list(
-      de = "Fragencode/Antwortcode für 'Keine der anderen' Option.",
-      en = "Question/answer code for the 'None of the above' exclusive option."
+      de = "Deaktiviert die anderen Optionen bei Mehrfachauswahlfragen, wenn die Auswahl einer Antwort alle anderen unmöglich macht",
+      en = "Disables the other options when selected (for multiple-choice questions where selecting one answer makes the other answers invalid.)."
     ),
-    ls_type = c("1", "A", "B", "C", "E", "F", "K", "M", "P", "Q")
+    ls_type = c("A", "B", "C", "E", "F", "K", "M", "P", "Q")
   ),
 
   "exclude_all_others_auto" = list(
@@ -1243,7 +1648,22 @@ LS_Q_OPTIONS <- list(
       de = "Mindestanzahl zu beantwortender Unterzeilen.",
       en = "Minimum number of subquestion rows that must be answered."
     ),
-    ls_type = c("1", ":", "A", "B", "C", "E", "F", "K", "M", "P", "Q", "R")
+    ls_type = c(
+      "1",
+      ":",
+      "A",
+      "B",
+      "C",
+      "E",
+      "F",
+      "K",
+      "M",
+      "P",
+      "Q",
+      "R",
+      ";"
+    ),
+    valid = .ls_valid_number_or_expression
   ),
 
   "max_answers" = list(
@@ -1251,7 +1671,22 @@ LS_Q_OPTIONS <- list(
       de = "Maximalanzahl zu beantwortender Unterzeilen.",
       en = "Maximum number of subquestion rows that can be answered."
     ),
-    ls_type = c("1", ":", "A", "B", "C", "E", "F", "K", "M", "P", "Q", "R")
+    ls_type = c(
+      "1",
+      ":",
+      "A",
+      "B",
+      "C",
+      "E",
+      "F",
+      "K",
+      "M",
+      "P",
+      "Q",
+      "R",
+      ";"
+    ),
+    valid = .ls_valid_number_or_expression
   ),
 
   "repeat_headings" = list(
@@ -1259,16 +1694,35 @@ LS_Q_OPTIONS <- list(
       de = "Spaltenüberschriften nach jeder N-ten Unterzeile wiederholen.",
       en = "Repeat column headings every N subquestion rows."
     ),
-    ls_type = c("1", ":", "F")
+    ls_type = c("1", ":", ";", "F"),
+    valid = .ls_valid_nonnegative_integer
   ),
 
   "input_boxes" = list(
     description = list(
-      de = "Eingabefelder statt Checkboxen verwenden, Array Zahlen (1 = ja).",
+      de = "Eingabefelder statt Checkboxen verwenden für Matrix Zahlen (1 = ja).",
       en = "Use input boxes instead of checkboxes for array numbers (1 = yes)."
     ),
     ls_type = ":",
     valid = c(0, 1)
+  ),
+
+  "show_grand_total" = list(
+    description = list(
+      de = "Gesamtsumme unten rechts in der Matrix anzeigen. (1 = ja, 0 = nein)",
+      en = "Display the grand total in the bottom right part of the array. (1 = yes, 0 = no)"
+    ),
+    ls_type = ";",
+    valid = c(1, 0)
+  ),
+
+  "show_totals" = list(
+    description = list(
+      de = "Summen für Zeilen, Spalten oder beide anzeigen. (X = aus, R = Zeilen, C = Spalten, B = beide)",
+      en = "Display totals for rows, columns or both (X = off, R = rows, C = columns, B = both)"
+    ),
+    ls_type = ";",
+    valid = c("X", "R", "C", "B")
   ),
 
   # ══ Array dual scale (1) ══════════════════════════════════════════════════
@@ -1279,6 +1733,7 @@ LS_Q_OPTIONS <- list(
       en = "Header label for scale A of the dual-scale array."
     ),
     ls_type = "1",
+    valid = .ls_valid_character,
     language = TRUE
   ),
 
@@ -1288,6 +1743,7 @@ LS_Q_OPTIONS <- list(
       en = "Header label for scale B of the dual-scale array."
     ),
     ls_type = "1",
+    valid = .ls_valid_character,
     language = TRUE
   ),
 
@@ -1296,7 +1752,9 @@ LS_Q_OPTIONS <- list(
       de = "Vor-/Nachsilbe für Dropdown-Einträge der Doppelskala.",
       en = "Pre/postfix text for dual-scale dropdown entries."
     ),
-    ls_type = "1"
+    ls_type = "1",
+    valid = .ls_valid_character,
+    language = TRUE
   ),
 
   "dropdown_separators" = list(
@@ -1304,23 +1762,25 @@ LS_Q_OPTIONS <- list(
       de = "Trennzeichen zwischen Dropdown-Einträgen der Doppelskala.",
       en = "Separator between dual-scale dropdown entries."
     ),
-    ls_type = "1"
+    ls_type = "1",
+    valid = .ls_valid_character
   ),
 
   "parent_order" = list(
     description = list(
-      de = "Reihenfolge der übergeordneten Elemente (Array Zahlen). ?UNCERTAIN.",
-      en = "Order of parent elements (array numbers). ?UNCERTAIN: meaning unclear."
+      de = "Reihenfolge der Teilfragen einer bisherigen Frage (Array Zahlen) beibehalten.",
+      en = "Keeps the order of subquestions from a previous question (array numbers)."
     ),
-    ls_type = ":" # ?UNCERTAIN
+    ls_type = c(":")
+    # check: valid is missing?
   ),
 
   # ══ Array numbers multiflexible (:) ═══════════════════════════════════════
 
   "multiflexible_checkbox" = list(
     description = list(
-      de = "Multiflexiblen Zahlen-Array als Checkboxen darstellen (1 = ja).",
-      en = "Display multi-flexible number array as checkboxes (1 = yes)."
+      de = "Antwortoptionen als Checkboxen darstellen (1 = ja).",
+      en = "Display answers as checkboxes (1 = yes)."
     ),
     ls_type = ":",
     valid = c(0, 1)
@@ -1328,43 +1788,46 @@ LS_Q_OPTIONS <- list(
 
   "multiflexible_min" = list(
     description = list(
-      de = "Minimalwert für multiflexiblen Zahlen-Array.",
-      en = "Minimum value for multi-flexible number array."
+      de = "Minimalwert für den Fragetyp Matrix (Zahlen) setzen.",
+      en = "Set a minimum value for the question type Array (Numbers)."
     ),
-    ls_type = ":"
+    ls_type = ":",
+    valid = .ls_valid_numeric
   ),
 
   "multiflexible_max" = list(
     description = list(
-      de = "Maximalwert für multiflexiblen Zahlen-Array.",
-      en = "Maximum value for multi-flexible number array."
+      de = "Maximalwert für den Fragetyp Matrix (Zahlen) setzen.",
+      en = "Set a maximum value for the question type Array (Numbers)."
     ),
-    ls_type = ":"
+    ls_type = ":",
+    valid = .ls_valid_numeric
   ),
 
   "multiflexible_step" = list(
     description = list(
-      de = "Schrittweite für multiflexiblen Zahlen-Array.",
-      en = "Step size for multi-flexible number array."
+      de = "Schrittweite für den Fragetyp Matrix (Zahlen) setzen.",
+      en = "Step size for the question type Array (Numbers)."
     ),
-    ls_type = ":"
+    ls_type = ":",
+    valid = .ls_valid_numeric
   ),
 
   # ══ Multiple choice comments (P) ══════════════════════════════════════════
 
   "commented_checkbox" = list(
     description = list(
-      de = "Kommentiertes Checkbox-Verhalten ('always', 'check'). ?UNCERTAIN: alle Werte.",
-      en = "Commented checkbox behaviour ('always', 'check'). ?UNCERTAIN: all values."
+      de = "Kommentiertes Checkbox-Verhalten (allways = Kommentar immer erlaubt, checked (Standard) = automatisch gecheckt beim kommentieren, unchecked = Kommentar nur bei nicht ausgewählten Itens.",
+      en = "Commented checkbox behaviour (allways = user can alwas comment, checked (standard) = checkbox automatic checks when user comments, unchecked = user can only comment on unchecked boxes)"
     ),
     ls_type = "P",
-    valid = c("always", "check") # ?UNCERTAIN
+    valid = c("allways", "checked", "unchecked") #CGP es geht auch mit den richtig geschriebene Variante "always", aber Limesurvey erkennt "allways" direk
   ),
 
   "commented_checkbox_auto" = list(
     description = list(
-      de = "Kommentarfeld automatisch beim Ankreuzen anzeigen (1 = ja, 0 = nein).",
-      en = "Auto-show comment field when checkbox is checked (1 = yes, 0 = no)."
+      de = "Steuern, ob die Textangabe beim Nicht-Ankreuzen gespeichert wird (1 = ja (default), 0 = nein).",
+      en = "Define whether the text input remains saved or not once you uncheck its corresponding textbox.  (1 = yes (default), 0 = no)."
     ),
     ls_type = "P",
     valid = c(0, 1)
@@ -1372,8 +1835,8 @@ LS_Q_OPTIONS <- list(
 
   "choice_input_columns" = list(
     description = list(
-      de = "Anzahl der Spalten für Checkboxen (Mehrfachauswahl mit Kommentar).",
-      en = "Number of columns for checkboxes (multiple choice with comments)."
+      de = "Breite des Texteingabeboxes (für den Fragentyp Mehrfachauswahl mit Kommentar).",
+      en = "Width of the text input box (for the question type multiple choice with comments)."
     ),
     ls_type = "P"
   ),
@@ -1382,18 +1845,20 @@ LS_Q_OPTIONS <- list(
 
   "max_subquestions" = list(
     description = list(
-      de = "Maximale Anzahl an Rangplätzen (Ranking).",
-      en = "Maximum number of ranking positions to show."
+      de = "Maximale Anzahl der zuzuordnenden Rangplätzen (Ranking).",
+      en = "Maximum number of ranking positions."
     ),
-    ls_type = "R"
+    ls_type = "R",
+    valid = .ls_valid_positive_integer
   ),
 
   "rank_title" = list(
     description = list(
-      de = "Beschriftung der Rang-Spaltenüberschrift.",
+      de = "Beschriftung der Rang-Kopfzeile.",
       en = "Label for the rank column header."
     ),
     ls_type = "R",
+    valid = .ls_valid_character,
     language = TRUE
   ),
 
@@ -1408,7 +1873,7 @@ LS_Q_OPTIONS <- list(
 
   "samechoiceheight" = list(
     description = list(
-      de = "Gleiche Höhe für alle Auswahlfelder erzwingen (0 = nein, 1 = ja).",
+      de = "Gleiche Höhe für alle Auswahlfelder erzwingen (0 = nein, ja - Standard).",
       en = "Force equal height for all choice items (0 = no, 1 = yes)."
     ),
     ls_type = "R",
@@ -1417,7 +1882,7 @@ LS_Q_OPTIONS <- list(
 
   "samelistheight" = list(
     description = list(
-      de = "Gleiche Höhe für die Antwortliste erzwingen (0 = nein, 1 = ja).",
+      de = "Gleiche Höhe für die Antwortliste erzwingen (0 = nein, ja).",
       en = "Force equal height for the answer list (0 = no, 1 = yes)."
     ),
     ls_type = "R",
@@ -1426,8 +1891,8 @@ LS_Q_OPTIONS <- list(
 
   "showpopups" = list(
     description = list(
-      de = "Popup-Hinweise beim Ranking anzeigen (0 = nein, 1 = ja). ?UNCERTAIN.",
-      en = "Show popup hints during ranking (0 = no, 1 = yes). ?UNCERTAIN."
+      de = "Javascript-Hinweise anzeigen, wenn die maximale Antwortenanzahl beim Ranking überschritten ist (0 = nein, 1 = ja - Standard).",
+      en = "Show Javascript alert if the number of answers exceeds the maximum (0 = no, 1 = yes - Standard)."
     ),
     ls_type = "R",
     valid = c(0, 1)
@@ -1437,55 +1902,58 @@ LS_Q_OPTIONS <- list(
 
   "assessment_value" = list(
     description = list(
-      de = "Bewertungswert (Assessment) für die gesamte Frage.",
-      en = "Assessment value for the entire question."
+      de = "Bewertungswert (Assessment) für jede angekreuzte Teilfrage.",
+      en = "Assessment value for each checked subquestion."
     ),
-    ls_type = c("M", "P")
+    ls_type = c("M", "P"),
+    valid = .ls_valid_integer
   ),
 
-  # ══ Time limit (!, L, O, Q, R, S, T, U) ══════════════════════════════════
+  # ══ Time limit ("!", "L", "S", "T", "U", "X")  ══════════════════════════════════
 
   "time_limit" = list(
     description = list(
       de = "Zeitlimit für die Frage (in Sekunden).",
       en = "Time limit for the question (in seconds)."
     ),
-    ls_type = c("!", "L", "O", "Q", "R", "S", "T", "U")
+    ls_type = c("!", "L", "S", "T", "U", "X"),
+    valid = .ls_valid_numeric
   ),
 
   "time_limit_action" = list(
     description = list(
-      de = "Aktion bei Zeitablauf: 1 = nichts, 2 = Warnung und weiter, 3 = automatisch weiter.",
-      en = "Action on time expiry: 1 = nothing, 2 = warn and move, 3 = auto-move."
+      de = "Aktion bei Zeitablauf: 1 = warne und geh weiter, 2 = Gehe weiter ohne Warnung, 3 = Nur Deaktivieren (Änderungen werden nicht übernommen).",
+      en = "Action on time expiry: 1 = warn and move on (Standard), 2 = move on without warning, 3 = Disable only (Changes in the question are disabled)."
     ),
-    ls_type = c("!", "L", "O", "Q", "R", "S", "T", "U"),
+    ls_type = c("!", "L", "S", "T", "U", "X"),
     valid = 1:3
   ),
 
   "time_limit_disable_next" = list(
     description = list(
-      de = "'Weiter'-Schaltfläche während Zeitlimit deaktivieren (1 = ja).",
+      de = "'Nächster'-Knopf während Zeitlimit deaktivieren (1 = ja).",
       en = "Disable 'Next' button during time limit countdown (1 = yes)."
     ),
-    ls_type = c("!", "L", "O", "Q", "R", "S", "T", "U"),
+    ls_type = c("!", "L", "S", "T", "U", "X"),
     valid = c(0, 1)
   ),
 
   "time_limit_disable_prev" = list(
     description = list(
-      de = "'Zurück'-Schaltfläche während Zeitlimit deaktivieren (1 = ja).",
+      de = "'Zurück'-Knopf während Zeitlimit deaktivieren (1 = ja).",
       en = "Disable 'Back' button during time limit countdown (1 = yes)."
     ),
-    ls_type = c("!", "L", "O", "Q", "R", "S", "T", "U"),
+    ls_type = c("!", "L", "S", "T", "U", "X"),
     valid = c(0, 1)
   ),
 
   "time_limit_countdown_message" = list(
     description = list(
-      de = "Nachricht während des Countdowns.",
+      de = "Zeitlimitablauf-Nachricht",
       en = "Message displayed during the countdown."
     ),
-    ls_type = c("!", "L", "O", "Q", "R", "S", "T", "U"),
+    ls_type = c("!", "L", "S", "T", "U", "X"),
+    valid = .ls_valid_character,
     language = TRUE
   ),
 
@@ -1494,15 +1962,17 @@ LS_Q_OPTIONS <- list(
       de = "CSS-Stil für den Timer-Text.",
       en = "CSS style string for the timer text."
     ),
-    ls_type = c("!", "L", "O", "Q", "R", "S", "T", "U")
+    ls_type = c("!", "L", "S", "T", "U", "X"),
+    valid = .ls_valid_character
   ),
 
   "time_limit_message_delay" = list(
     description = list(
-      de = "Verzögerung (in Sekunden) bevor die Ablaufnachricht angezeigt wird.",
-      en = "Delay (in seconds) before the expiry message is shown."
+      de = "Verzögerung (in Sekunden) bevor die Ablaufnachricht angezeigt wird. Standard = 1 Sekunde. Einstellungsname: Zeitlimit Ablaufnachricht Anzeigezeit",
+      en = "Delay (in seconds) before the expiry message is shown. Standard = 1 second. Configuration name: Time limit expiry message display time"
     ),
-    ls_type = c("!", "L", "O", "Q", "R", "S", "T", "U")
+    ls_type = c("!", "L", "S", "T", "U", "X"),
+    valid = .ls_valid_numeric
   ),
 
   "time_limit_message" = list(
@@ -1510,7 +1980,8 @@ LS_Q_OPTIONS <- list(
       de = "Nachricht, die nach Ablauf des Zeitlimits angezeigt wird.",
       en = "Message displayed after the time limit expires."
     ),
-    ls_type = c("!", "L", "O", "Q", "R", "S", "T", "U"),
+    ls_type = c("!", "L", "S", "T", "U", "X"),
+    valid = .ls_valid_character,
     language = TRUE
   ),
 
@@ -1519,23 +1990,26 @@ LS_Q_OPTIONS <- list(
       de = "CSS-Stil für die Ablaufnachricht.",
       en = "CSS style string for the expiry message."
     ),
-    ls_type = c("!", "L", "O", "Q", "R", "S", "T", "U")
+    ls_type = c("!", "L", "S", "T", "U", "X"),
+    valid = .ls_valid_character
   ),
 
   "time_limit_warning" = list(
     description = list(
-      de = "Zeitpunkt (Sekunden vor Ablauf) für erste Vorwarnmeldung.",
-      en = "Time (seconds before expiry) at which the first warning is shown."
+      de = "Zeit (in Sekunden) vor Ablauf des Zeitlimits, wenn die (erste) Vorwarnmeldung angezeigt wird.",
+      en = "Set the time (in seconds) when the (first) warning message is shown before the time limit expires."
     ),
-    ls_type = c("!", "L", "O", "Q", "R", "S", "T", "U")
+    ls_type = c("!", "L", "S", "T", "U", "X"),
+    valid = .ls_valid_numeric
   ),
 
   "time_limit_warning_display_time" = list(
     description = list(
-      de = "Anzeigedauer der ersten Vorwarnung (in Sekunden).",
+      de = "Anzeigedauer der ersten Vorwarnmeldung (in Sekunden).",
       en = "Display duration of the first warning (in seconds)."
     ),
-    ls_type = c("!", "L", "O", "Q", "R", "S", "T", "U")
+    ls_type = c("!", "L", "S", "T", "U", "X"),
+    valid = .ls_valid_numeric
   ),
 
   "time_limit_warning_message" = list(
@@ -1543,7 +2017,8 @@ LS_Q_OPTIONS <- list(
       de = "Text der ersten Vorwarnmeldung.",
       en = "Text of the first time limit warning."
     ),
-    ls_type = c("!", "L", "O", "Q", "R", "S", "T", "U"),
+    ls_type = c("!", "L", "S", "T", "U", "X"),
+    valid = .ls_valid_character,
     language = TRUE
   ),
 
@@ -1552,15 +2027,17 @@ LS_Q_OPTIONS <- list(
       de = "CSS-Stil für die erste Vorwarnmeldung.",
       en = "CSS style string for the first warning."
     ),
-    ls_type = c("!", "L", "O", "Q", "R", "S", "T", "U")
+    ls_type = c("!", "L", "S", "T", "U", "X"),
+    valid = .ls_valid_character
   ),
 
   "time_limit_warning_2" = list(
     description = list(
-      de = "Zeitpunkt (Sekunden vor Ablauf) für zweite Vorwarnmeldung.",
-      en = "Time (seconds before expiry) at which the second warning is shown."
+      de = "Zeit (in Sekunden) für zweite Vorwarnmeldung, bevor das Zeitlimit abläuft.",
+      en = "Time (in seconds) before the time limit expires when the second warning is shown."
     ),
-    ls_type = c("!", "L", "O", "Q", "R", "S", "T", "U")
+    ls_type = c("!", "L", "S", "T", "U", "X"),
+    valid = .ls_valid_numeric
   ),
 
   "time_limit_warning_2_display_time" = list(
@@ -1568,7 +2045,8 @@ LS_Q_OPTIONS <- list(
       de = "Anzeigedauer der zweiten Vorwarnung (in Sekunden).",
       en = "Display duration of the second warning (in seconds)."
     ),
-    ls_type = c("!", "L", "O", "Q", "R", "S", "T", "U")
+    ls_type = c("!", "L", "S", "T", "U", "X"),
+    valid = .ls_valid_numeric
   ),
 
   "time_limit_warning_2_message" = list(
@@ -1576,7 +2054,8 @@ LS_Q_OPTIONS <- list(
       de = "Text der zweiten Vorwarnmeldung.",
       en = "Text of the second time limit warning."
     ),
-    ls_type = c("!", "L", "O", "Q", "R", "S", "T", "U"),
+    ls_type = c("!", "L", "S", "T", "U", "X"),
+    valid = .ls_valid_character,
     language = TRUE
   ),
 
@@ -1585,7 +2064,8 @@ LS_Q_OPTIONS <- list(
       de = "CSS-Stil für die zweite Vorwarnmeldung.",
       en = "CSS style string for the second warning."
     ),
-    ls_type = c("!", "L", "O", "Q", "R", "S", "T", "U")
+    ls_type = c("!", "L", "S", "T", "U", "X"),
+    valid = .ls_valid_character
   )
 )
 
@@ -1600,7 +2080,7 @@ LS_Q_OPTIONS <- list(
   "em_validation_q_tip",
   "em_validation_sq",
   "em_validation_sq_tip",
-  "regex_validation",
+  "validation",
   "prefix",
   "suffix",
   "location_defaultcoordinates",
@@ -1674,11 +2154,15 @@ LS_Q_OPTIONS <- list(
 )
 
 for (nm in .ls_q_character_options) {
-  LS_Q_OPTIONS[[nm]]$valid <- .ls_valid_character
+  if (is.null(LS_Q_OPTIONS[[nm]]$valid)) {
+    LS_Q_OPTIONS[[nm]]$valid <- .ls_valid_character
+  }
 }
 
 for (nm in .ls_q_numeric_options) {
-  LS_Q_OPTIONS[[nm]]$valid <- .ls_valid_numeric
+  if (is.null(LS_Q_OPTIONS[[nm]]$valid)) {
+    LS_Q_OPTIONS[[nm]]$valid <- .ls_valid_numeric
+  }
 }
 
 rm(.ls_q_character_options, .ls_q_numeric_options)
