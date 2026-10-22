@@ -276,9 +276,21 @@ validate_structure <- function(structure, settings, add) {
           "warning",
           loc_q,
           paste0(
-            "Code '",
+            "Question code '",
             qst_code,
             "' should start with a letter and contain only letters and digits."
+          )
+        )
+      }
+
+      if (nchar(qst_code) > 20) {
+        add(
+          "error",
+          loc_q,
+          paste0(
+            "Question code '",
+            qst_code,
+            "' is too long and should be no more than 20 characters."
           )
         )
       }
