@@ -22,12 +22,13 @@ ls_codebook(
 
 \item{lang}{Character vector. \code{"all"} or specific codes like \code{c("en", "de")}.}
 
-\item{fields}{Character vector. Additional fields to include in question
-blocks beyond the fixed defaults (\code{text}, \code{help}, \code{type/scale},
-\code{relevance}), e.g. \code{"mandatory"} or \code{"hidden"}. Empty or missing values
-are not printed. Named vectors are supported: values are field names and
-names are the labels printed in the codebook, e.g.
-\code{c("Filter" = "relevance")}.}
+\item{fields}{Character vector of fields to include in question blocks.
+\code{NULL} uses the defaults (\code{text}, \code{help}, \code{type/scale}, and \code{relevance}).
+When supplied, this vector replaces those defaults, so only the listed
+fields are printed, in the order given. Empty or missing values are
+ignored. Named vectors are supported: values are field names and names are
+the labels printed in the codebook, e.g.
+\code{c("Question" = "text", "Required" = "mandatory")}.}
 
 \item{rm_hidden}{Logical. Remove hidden question variables from the codebook.}
 

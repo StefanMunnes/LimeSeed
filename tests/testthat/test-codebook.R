@@ -14,7 +14,9 @@ test_that("codebook language discovery splits additional languages", {
 
 test_that("codebook body groups multilingual structural rows together", {
   df <- suppressMessages(build_lsdf(bilingual_seed()))
-  fields <- LimeSeed:::.codebook_fields(c("mandatory", "hidden"))
+  fields <- LimeSeed:::.codebook_fields(
+    c("text", "type/scale", "mandatory", "hidden")
+  )
   df$hidden[df$class == "Q" & df$name == "q1"] <- "1"
 
   body <- LimeSeed:::.generate_qmd_body(
@@ -77,26 +79,34 @@ test_that("codebook body formats subquestions as indented content blocks", {
 })
 
 
-test_that("fields appends requested non-empty fields to fixed defaults", {
+test_that("fields replaces defaults with requested non-empty fields", {
   fields <- LimeSeed:::.codebook_fields(
     c("mandatory", "hidden", "")
   )
 
   expect_equal(
     unname(fields),
-    c("type.scale", "relevance", "text", "help", "mandatory", "hidden")
+    c("mandatory", "hidden")
   )
   expect_equal(
     names(fields),
-    c("Type", "Filter", "Question text", "Help text", "Mandatory", "Hidden")
+    c("Mandatory", "Hidden")
   )
 })
 
 
-test_that("mandatory is optional, not a fixed default field", {
+test_that("NULL fields uses the fixed defaults", {
   expect_equal(
     unname(LimeSeed:::.codebook_fields(NULL)),
     c("type.scale", "relevance", "text", "help")
+  )
+})
+
+
+test_that("an explicit empty fields vector selects no fields", {
+  expect_equal(
+    LimeSeed:::.codebook_fields(character()),
+    stats::setNames(character(), character())
   )
 })
 
@@ -114,6 +124,8 @@ test_that("named fields control printed codebook labels", {
 
   expect_true(any(trimws(body) == "**Eligibility:** age > 18"))
   expect_false(any(trimws(body) == "**Filter:** age > 18"))
+  expect_false(any(trimws(body) == "**Type:** radio"))
+  expect_false(any(trimws(body) == "**Question text:**"))
 })
 
 

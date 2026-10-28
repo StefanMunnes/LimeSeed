@@ -5,12 +5,13 @@
 #' @param df A data.frame from [build_lsdf()] or a path to a LimeSurvey TSV file.
 #' @param output_file Character. Default: `"codebook.html"`.
 #' @param lang Character vector. `"all"` or specific codes like `c("en", "de")`.
-#' @param fields Character vector. Additional fields to include in question
-#'   blocks beyond the fixed defaults (`text`, `help`, `type/scale`,
-#'   `relevance`), e.g. `"mandatory"` or `"hidden"`. Empty or missing values
-#'   are not printed. Named vectors are supported: values are field names and
-#'   names are the labels printed in the codebook, e.g.
-#'   `c("Filter" = "relevance")`.
+#' @param fields Character vector of fields to include in question blocks.
+#'   `NULL` uses the defaults (`text`, `help`, `type/scale`, and `relevance`).
+#'   When supplied, this vector replaces those defaults, so only the listed
+#'   fields are printed, in the order given. Empty or missing values are
+#'   ignored. Named vectors are supported: values are field names and names are
+#'   the labels printed in the codebook, e.g.
+#'   `c("Question" = "text", "Required" = "mandatory")`.
 #' @param rm_hidden Logical. Remove hidden question variables from the codebook.
 #' @param rm_vars Character vector. Question variable names that should not be
 #'   reported in the codebook.
@@ -232,20 +233,11 @@ seed_to_codebook <- function(
 
 
 .codebook_fields <- function(fields = NULL) {
-  out <- .codebook_default_fields()
-  extra <- .normalize_codebook_fields(fields)
-
-  for (i in seq_along(extra)) {
-    field <- unname(extra[[i]])
-    pos <- match(field, unname(out))
-    if (is.na(pos)) {
-      out <- c(out, extra[i])
-    } else {
-      names(out)[pos] <- names(extra)[i]
-    }
+  if (is.null(fields)) {
+    return(.codebook_default_fields())
   }
 
-  out
+  .normalize_codebook_fields(fields)
 }
 
 
