@@ -107,7 +107,7 @@ ls_codebook <- function(
       sprintf('    reference-doc: "%s"', .yaml_path(.codebook_reference_docx()))
     )
   } else if (identical(ext, "pdf")) {
-    "format: typst"
+    c("format:", "  typst:", "    page-numbering: true")
   } else {
     sprintf("format: %s", ext)
   }
@@ -174,7 +174,10 @@ seed_to_codebook <- function(
   required <- c("class", "name", "text", "language")
   missing <- setdiff(required, names(df))
   if (length(missing) > 0L) {
-    stop("`df` is missing required column(s): ", paste(missing, collapse = ", "))
+    stop(
+      "`df` is missing required column(s): ",
+      paste(missing, collapse = ", ")
+    )
   }
 
   df[is.na(df)] <- ""
@@ -272,7 +275,8 @@ seed_to_codebook <- function(
     }
 
     if (
-      cls %in% c("Q", "SQ", "A") &&
+      cls %in%
+        c("Q", "SQ", "A") &&
         nzchar(current_question) &&
         current_question %in% rm_questions
     ) {
@@ -291,10 +295,12 @@ seed_to_codebook <- function(
 
 
 .move_codebook_file <- function(from, to) {
-  if (identical(
-    normalizePath(from, mustWork = FALSE),
-    normalizePath(to, mustWork = FALSE)
-  )) {
+  if (
+    identical(
+      normalizePath(from, mustWork = FALSE),
+      normalizePath(to, mustWork = FALSE)
+    )
+  ) {
     return(invisible(TRUE))
   }
   if (file.exists(to)) {
@@ -353,7 +359,12 @@ seed_to_codebook <- function(
 
 
 .yaml_path <- function(path) {
-  gsub('"', '\\"', normalizePath(path, winslash = "/", mustWork = TRUE), fixed = TRUE)
+  gsub(
+    '"',
+    '\\"',
+    normalizePath(path, winslash = "/", mustWork = TRUE),
+    fixed = TRUE
+  )
 }
 
 
@@ -365,7 +376,9 @@ seed_to_codebook <- function(
 
 .available_codebook_languages <- function(df) {
   base <- .setting_value(df, "language")
-  extras <- .split_langs(df$text[df$class == "S" & df$name == "additional_languages"])
+  extras <- .split_langs(df$text[
+    df$class == "S" & df$name == "additional_languages"
+  ])
   row_langs <- unique(df$language[!is.na(df$language) & nzchar(df$language)])
   langs <- unique(c(base, extras, row_langs))
   langs[nzchar(langs)]
@@ -473,7 +486,8 @@ seed_to_codebook <- function(
   }
 
   rows <- block[
-    block$language %in% target_langs &
+    block$language %in%
+      target_langs &
       !is.na(block[[field]]) &
       block[[field]] != "",
     ,
@@ -483,11 +497,22 @@ seed_to_codebook <- function(
     return("")
   }
 
-  vals <- vapply(seq_len(nrow(rows)), function(i) {
-    .process_text(rows[[field]][i], mode)
-  }, character(1L))
+  vals <- vapply(
+    seq_len(nrow(rows)),
+    function(i) {
+      .process_text(rows[[field]][i], mode)
+    },
+    character(1L)
+  )
 
-  language_fields <- c("text", "help", "other_replace_text", "prefix", "suffix", "default")
+  language_fields <- c(
+    "text",
+    "help",
+    "other_replace_text",
+    "prefix",
+    "suffix",
+    "default"
+  )
   if (
     length(target_langs) > 1L &&
       !field %in% language_fields &&
@@ -496,15 +521,19 @@ seed_to_codebook <- function(
     return(vals[[1L]])
   }
 
-  res <- vapply(seq_len(nrow(rows)), function(i) {
-    val <- vals[[i]]
-    lang <- rows$language[i]
-    if (length(target_langs) > 1L && nzchar(lang)) {
-      sprintf("**[%s]** %s", lang, val)
-    } else {
-      val
-    }
-  }, character(1L))
+  res <- vapply(
+    seq_len(nrow(rows)),
+    function(i) {
+      val <- vals[[i]]
+      lang <- rows$language[i]
+      if (length(target_langs) > 1L && nzchar(lang)) {
+        sprintf("**[%s]** %s", lang, val)
+      } else {
+        val
+      }
+    },
+    character(1L)
+  )
 
   paste(res, collapse = " <br> ")
 }
@@ -552,7 +581,11 @@ seed_to_codebook <- function(
   }
 
   lines <- if (length(values$value) == 1L && !nzchar(values$language[[1L]])) {
-    .markdown_hardbreak(sprintf("  **%s:** %s", block$name[[1L]], values$value[[1L]]))
+    .markdown_hardbreak(sprintf(
+      "  **%s:** %s",
+      block$name[[1L]],
+      values$value[[1L]]
+    ))
   } else {
     c(
       .markdown_hardbreak(sprintf("  **%s**", block$name[[1L]])),
@@ -568,15 +601,19 @@ seed_to_codebook <- function(
 
 
 .multilang_markdown_lines <- function(values, indent = "") {
-  vapply(seq_along(values$value), function(i) {
-    lang <- values$language[[i]]
-    line <- if (nzchar(lang)) {
-      sprintf("%s**[%s]** %s", indent, lang, values$value[[i]])
-    } else {
-      sprintf("%s%s", indent, values$value[[i]])
-    }
-    .markdown_hardbreak(line)
-  }, character(1L))
+  vapply(
+    seq_along(values$value),
+    function(i) {
+      lang <- values$language[[i]]
+      line <- if (nzchar(lang)) {
+        sprintf("%s**[%s]** %s", indent, lang, values$value[[i]])
+      } else {
+        sprintf("%s%s", indent, values$value[[i]])
+      }
+      .markdown_hardbreak(line)
+    },
+    character(1L)
+  )
 }
 
 
@@ -592,22 +629,31 @@ seed_to_codebook <- function(
     return(empty)
   }
 
-  rows_all <- block[!is.na(block[[field]]) & block[[field]] != "", , drop = FALSE]
+  rows_all <- block[
+    !is.na(block[[field]]) & block[[field]] != "",
+    ,
+    drop = FALSE
+  ]
   rows <- rows_all[rows_all$language %in% target_langs, , drop = FALSE]
   if (nrow(rows) == 0L) {
     return(empty)
   }
 
-  vals <- vapply(seq_len(nrow(rows)), function(i) {
-    .format_field_value(field, rows[[field]][i], mode)
-  }, character(1L))
+  vals <- vapply(
+    seq_len(nrow(rows)),
+    function(i) {
+      .format_field_value(field, rows[[field]][i], mode)
+    },
+    character(1L)
+  )
 
   if (identical(field, "relevance") && all(vals == "1")) {
     return(empty)
   }
 
   if (
-    !field %in% c("text", "help", "other_replace_text", "prefix", "suffix", "default") &&
+    !field %in%
+      c("text", "help", "other_replace_text", "prefix", "suffix", "default") &&
       length(unique(vals)) == 1L
   ) {
     return(list(language = "", value = vals[[1L]]))
