@@ -39,6 +39,50 @@ test_that("build_settings_rows and build_lang_rows produce the expected named ro
   expect_true("surveyls_dateformat" %in% sl_names)
 })
 
+test_that("email settings use defaults and allow per-language overrides", {
+  settings <- resolve_settings(list(
+    language = "en",
+    additional_languages = "de",
+    titles = list(en = "Survey", de = "Umfrage"),
+    surveyls_email_invite_subj = list(
+      en = "Please participate",
+      de = "Bitte teilnehmen"
+    ),
+    email_admin_notification = list(
+      en = "A response arrived",
+      de = "Eine Antwort ist eingegangen"
+    )
+  ))
+
+  expect_equal(
+    settings$surveyls_email_remind_subj,
+    EMAIL_DEFAULTS$surveyls_email_remind_subj
+  )
+
+  en_rows <- build_lang_rows(settings, "en")
+  de_rows <- build_lang_rows(settings, "de")
+  en_text <- stats::setNames(
+    vapply(en_rows, `[[`, character(1), "text"),
+    vapply(en_rows, `[[`, character(1), "name")
+  )
+  de_text <- stats::setNames(
+    vapply(de_rows, `[[`, character(1), "text"),
+    vapply(de_rows, `[[`, character(1), "name")
+  )
+
+  expect_equal(en_text[["surveyls_email_invite_subj"]], "Please participate")
+  expect_equal(de_text[["surveyls_email_invite_subj"]], "Bitte teilnehmen")
+  expect_equal(en_text[["email_admin_notification"]], "A response arrived")
+  expect_equal(
+    de_text[["email_admin_notification"]],
+    "Eine Antwort ist eingegangen"
+  )
+  expect_equal(
+    en_text[["surveyls_email_remind_subj"]],
+    EMAIL_DEFAULTS$surveyls_email_remind_subj
+  )
+})
+
 test_that("build_id_map assigns depth-first sequential ids and skips groupOptions", {
   ids <- build_id_map(array_seed()$structure)
 
@@ -56,7 +100,10 @@ test_that("text helpers provide strict and fallback language resolution", {
   expect_equal(get_text_fb(NULL, "de", "de"), "")
   expect_equal(get_text_fb("plain", "en", "de"), "plain")
   expect_equal(get_text_fb(input, "en", "de"), "Deutsch")
-  expect_equal(get_text_fb(list(de = "", en = "", fr = "Francais"), "en", "de"), "Francais")
+  expect_equal(
+    get_text_fb(list(de = "", en = "", fr = "Francais"), "en", "de"),
+    "Francais"
+  )
 
   expect_equal(get_text(NULL, "de"), "")
   expect_equal(get_text("plain", "en"), "plain")

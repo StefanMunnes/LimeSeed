@@ -561,9 +561,34 @@ LS_Q_OPTIONS <- list(
       en = "Enable data encryption for corresponding responses. Standard = off"
     ),
     ls_type = c(
-      "5", "!", "L", "O", "D", "G", "Y", "K", "R", "I", "N",
-      "1", "F", "B", "A", "C", ";", ":", "E", "H", "M", "P",
-      "Q", "S", "T", "U", "|", "*"
+      "5",
+      "!",
+      "L",
+      "O",
+      "D",
+      "G",
+      "Y",
+      "K",
+      "R",
+      "I",
+      "N",
+      "1",
+      "F",
+      "B",
+      "A",
+      "C",
+      ";",
+      ":",
+      "E",
+      "H",
+      "M",
+      "P",
+      "Q",
+      "S",
+      "T",
+      "U",
+      "|",
+      "*"
     ),
     default = "N",
     valid = c("Y", "N"),
@@ -640,9 +665,34 @@ LS_Q_OPTIONS <- list(
       en = "Insert a page break before this question in print mode (1 = yes)."
     ),
     ls_type = c(
-      "5", "!", "*", "L", "O", "D", "G", "Y", "K", "R", "X", "N",
-      "1", "F", "B", "A", "C", ";", ":", "E", "H", "M", "P", "Q",
-      "S", "T", "U", "|"
+      "5",
+      "!",
+      "*",
+      "L",
+      "O",
+      "D",
+      "G",
+      "Y",
+      "K",
+      "R",
+      "X",
+      "N",
+      "1",
+      "F",
+      "B",
+      "A",
+      "C",
+      ";",
+      ":",
+      "E",
+      "H",
+      "M",
+      "P",
+      "Q",
+      "S",
+      "T",
+      "U",
+      "|"
     ),
     valid = c(0, 1)
   ),
@@ -684,8 +734,26 @@ LS_Q_OPTIONS <- list(
       en = "Show question in public statistics (1 = yes, 0 = no)."
     ),
     ls_type = c(
-      "1", "5", "A", "B", "C", "E", "F", "G", "H", "K", "L", "M",
-      "N", "O", "P", "R", "Y", "!", ":", "*"
+      "1",
+      "5",
+      "A",
+      "B",
+      "C",
+      "E",
+      "F",
+      "G",
+      "H",
+      "K",
+      "L",
+      "M",
+      "N",
+      "O",
+      "P",
+      "R",
+      "Y",
+      "!",
+      ":",
+      "*"
     ),
     valid = c(0, 1)
   ),
@@ -696,9 +764,34 @@ LS_Q_OPTIONS <- list(
       en = "Randomisation group: questions in the same group are shown in random order."
     ),
     ls_type = c(
-      "1", "5", "A", "B", "C", "D", "E", "F", "G", "H", "I", "K",
-      "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "X", "Y",
-      "!", ":", ";", "|"
+      "1",
+      "5",
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "H",
+      "I",
+      "K",
+      "L",
+      "M",
+      "N",
+      "O",
+      "P",
+      "Q",
+      "R",
+      "S",
+      "T",
+      "U",
+      "X",
+      "Y",
+      "!",
+      ":",
+      ";",
+      "|"
     ),
     valid = .ls_valid_character
   ),
@@ -718,9 +811,34 @@ LS_Q_OPTIONS <- list(
       en = "Graph type for the statistics view (0 = Bar chart, 1 = Pie chart, 2 = Radar, 3 = Line, 4 = PolarArea, 5 = Doughnut)"
     ),
     ls_type = c(
-      "1", "5", "A", "B", "C", "D", "E", "F", "G", "H", "I", "K",
-      "L", "M", "N", "O", "Q", "R", "S", "T", "U", "X", "Y", "!",
-      ":", ";", "|", "*"
+      "1",
+      "5",
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "H",
+      "I",
+      "K",
+      "L",
+      "M",
+      "N",
+      "O",
+      "Q",
+      "R",
+      "S",
+      "T",
+      "U",
+      "X",
+      "Y",
+      "!",
+      ":",
+      ";",
+      "|",
+      "*"
     ),
     valid = 0:5
   ),
@@ -2894,5 +3012,26 @@ EMAIL_DEFAULTS <- list(
     "edit the individual response:<br />{EDITRESPONSEURL}<br /><br />View ",
     "statistics by clicking here:<br />{STATISTICSURL}<br /><br /><br />The ",
     "following answers were given by the participant:<br />{ANSWERTABLE}"
+  )
+)
+
+# Email subjects and bodies are regular multilingual survey settings. Keeping
+# their LimeSurvey field names as seed keys makes the mapping explicit and
+# allows each language to override the English defaults independently.
+LS_SL_SETTINGS <- c(
+  LS_SL_SETTINGS,
+  stats::setNames(
+    lapply(names(EMAIL_DEFAULTS), function(field) {
+      list(
+        sl_name = field,
+        description = list(
+          de = paste0("Mehrsprachiger E-Mail-Text für `", field, "`."),
+          en = paste0("Multilingual email text for `", field, "`.")
+        ),
+        default = EMAIL_DEFAULTS[[field]],
+        language = TRUE
+      )
+    }),
+    names(EMAIL_DEFAULTS)
   )
 )
