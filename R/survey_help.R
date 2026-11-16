@@ -34,7 +34,7 @@
 }
 
 # Format a valid-values spec into a readable string
-.lsh_fmt_valid <- function(v, max_len = 20) {
+.lsh_fmt_valid <- function(v, max_len = NULL) {
   if (is.null(v)) {
     return("any")
   }
@@ -45,12 +45,30 @@
     }
     return("(see docs)")
   }
-  s <- paste(as.character(v), collapse = " | ")
-  .lsh_trunc(s, max_len)
+  is_range <- is.numeric(v) &&
+    length(v) > 2L &&
+    all(diff(v) == 1)
+  s <- if (is_range) {
+    paste0(v[[1L]], ":", v[[length(v)]])
+  } else {
+    paste(as.character(v), collapse = " | ")
+  }
+  if (!is.null(max_len)) {
+    .lsh_trunc(s, max_len)
+  } else {
+    s
+  }
 }
 
 .lsh_wrap_text <- function(x, width) {
   lines <- strwrap(as.character(x %||% ""), width = width)
+  lines <- unlist(lapply(lines, function(line) {
+    if (nchar(line) <= width) {
+      return(line)
+    }
+    starts <- seq.int(1L, nchar(line), by = width)
+    substring(line, starts, pmin(starts + width - 1L, nchar(line)))
+  }), use.names = FALSE)
   if (length(lines) == 0L) {
     ""
   } else {
@@ -345,21 +363,30 @@ print.lsh_types_result <- function(x, ...) {
     return(invisible(NULL))
   }
 
-  # Column widths — Option column adapts to the longest name in this result set
-  w_name <- min(38L, max(nchar(opt_names))) + 2L
-  w_dflt <- 12L
-  w_valid <- 28L
-  w_desc <- 60L
+  # Fit the table to the active R console width so R never wraps a row at the
+  # terminal edge. Every column wraps its own content when space is limited.
+  table_width <- max(60L, as.integer(getOption("width", 80L)) - 1L)
+  content_width <- table_width - 4L
+  w_name <- max(12L, min(20L, floor(content_width * 0.22)))
+  w_dflt <- max(8L, min(12L, floor(content_width * 0.12)))
+  w_valid <- max(16L, min(26L, floor(content_width * 0.25)))
+  w_types <- max(12L, min(30L, floor(content_width * 0.17)))
+  w_desc <- content_width - w_name - w_dflt - w_valid - w_types
 
   # Table header
   cat(
     .lsh_pad("Option", w_name),
+    " ",
     .lsh_pad("Default", w_dflt),
+    " ",
     .lsh_pad("Valid", w_valid),
+    " ",
     .lsh_pad("Description", w_desc),
-    "Types\n"
+    " ",
+    "Types\n",
+    sep = ""
   )
-  cat(.lsh_rule(w_name + w_dflt + w_valid + w_desc + 8L), "\n")
+  cat(.lsh_rule(table_width), "\n")
 
   for (nm in opt_names) {
     opt <- LS_Q_OPTIONS[[nm]]
@@ -371,34 +398,41 @@ print.lsh_types_result <- function(x, ...) {
     }
     lang_star <- if (isTRUE(opt$language)) " \u2605" else ""
     valid_str <- paste0(
-      .lsh_fmt_valid(opt[["valid"]], max_len = w_valid - 1L),
+      .lsh_fmt_valid(opt[["valid"]]),
       lang_star
     )
+    name_lines <- .lsh_wrap_text(nm, w_name)
+    dflt_lines <- .lsh_wrap_text(dflt, w_dflt)
+    valid_lines <- .lsh_wrap_text(valid_str, w_valid)
     desc_lines <- .lsh_wrap_text(.lsh_desc(opt, lang), w_desc)
     types_str <- if (is.null(opt$ls_type)) {
       "all"
     } else {
       paste(opt$ls_type, collapse = " ")
     }
-
-    cat(
-      .lsh_pad(nm, w_name),
-      .lsh_pad(dflt, w_dflt),
-      .lsh_pad(valid_str, w_valid),
-      .lsh_pad(desc_lines[[1L]], w_desc),
-      types_str,
-      "\n"
+    type_lines <- .lsh_wrap_text(types_str, w_types)
+    n_lines <- max(
+      length(name_lines),
+      length(dflt_lines),
+      length(valid_lines),
+      length(desc_lines),
+      length(type_lines)
     )
-    if (length(desc_lines) > 1L) {
-      for (desc_line in desc_lines[-1L]) {
-        cat(
-          .lsh_pad("", w_name),
-          .lsh_pad("", w_dflt),
-          .lsh_pad("", w_valid),
-          desc_line,
-          "\n"
-        )
-      }
+
+    for (i in seq_len(n_lines)) {
+      cat(
+        .lsh_pad(if (i <= length(name_lines)) name_lines[[i]] else "", w_name),
+        " ",
+        .lsh_pad(if (i <= length(dflt_lines)) dflt_lines[[i]] else "", w_dflt),
+        " ",
+        .lsh_pad(if (i <= length(valid_lines)) valid_lines[[i]] else "", w_valid),
+        " ",
+        .lsh_pad(if (i <= length(desc_lines)) desc_lines[[i]] else "", w_desc),
+        " ",
+        if (i <= length(type_lines)) type_lines[[i]] else "",
+        "\n",
+        sep = ""
+      )
     }
   }
 
