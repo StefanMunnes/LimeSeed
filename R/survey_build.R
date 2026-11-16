@@ -10,7 +10,10 @@
 #' @keywords internal
 resolve_settings <- function(settings) {
   all_specs <- c(LS_SETTINGS, LS_SL_SETTINGS)
-  defaults <- stats::setNames(lapply(all_specs, `[[`, "default"), names(all_specs))
+  defaults <- stats::setNames(
+    lapply(all_specs, `[[`, "default"),
+    names(all_specs)
+  )
   out <- utils::modifyList(defaults, settings)
 
   if (is.null(settings$additional_languages) && is.list(out$titles)) {
@@ -45,8 +48,6 @@ build_settings_rows <- function(s) {
 #' Build SL-rows (language-specific survey settings) for one language
 #' @keywords internal
 build_lang_rows <- function(s, lang) {
-  e <- EMAIL_DEFAULTS
-
   sl_fields <- list(
     surveyls_survey_id = as.character(s$sid),
     surveyls_language = lang
@@ -61,24 +62,6 @@ build_lang_rows <- function(s, lang) {
       as.character(value)
     }
   }
-
-  sl_fields <- c(
-    sl_fields,
-    list(
-      surveyls_email_invite_subj = e$surveyls_email_invite_subj,
-      surveyls_email_invite = e$surveyls_email_invite,
-      surveyls_email_remind_subj = e$surveyls_email_remind_subj,
-      surveyls_email_remind = e$surveyls_email_remind,
-      surveyls_email_register_subj = e$surveyls_email_register_subj,
-      surveyls_email_register = e$surveyls_email_register,
-      surveyls_email_confirm_subj = e$surveyls_email_confirm_subj,
-      surveyls_email_confirm = e$surveyls_email_confirm,
-      email_admin_notification_subj = e$email_admin_notification_subj,
-      email_admin_notification = e$email_admin_notification,
-      email_admin_responses_subj = e$email_admin_responses_subj,
-      email_admin_responses = e$email_admin_responses
-    )
-  )
 
   lapply(names(sl_fields), function(field) {
     ls_row(
