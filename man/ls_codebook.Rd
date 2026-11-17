@@ -16,7 +16,9 @@ ls_codebook(
 )
 }
 \arguments{
-\item{df}{A data.frame from \code{\link[=build_lsdf]{build_lsdf()}} or a path to a LimeSurvey TSV file.}
+\item{df}{A data.frame from \code{\link[=build_lsdf]{build_lsdf()}}, a path to a LimeSurvey TSV file,
+or a path to a seed YAML file (or list of YAML files, or seed list).
+See \code{\link[=load_seed]{load_seed()}} for full details on accepted seed formats.}
 
 \item{output_file}{Character. Default: \code{"codebook.html"}.}
 

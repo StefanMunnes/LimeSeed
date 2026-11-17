@@ -2,7 +2,9 @@
 
 #' Generate a LimeSurvey Codebook via Quarto
 #'
-#' @param df A data.frame from [build_lsdf()] or a path to a LimeSurvey TSV file.
+#' @param df A data.frame from [build_lsdf()], a path to a LimeSurvey TSV file,
+#'   or a path to a seed YAML file (or list of YAML files, or seed list).
+#'   See [load_seed()] for full details on accepted seed formats.
 #' @param output_file Character. Default: `"codebook.html"`.
 #' @param lang Character vector. `"all"` or specific codes like `c("en", "de")`.
 #' @param fields Character vector of fields to include in question blocks.
@@ -35,19 +37,66 @@ ls_codebook <- function(
 ) {
   html_mode <- match.arg(html_mode)
 
-  if (is.character(df) && file.exists(df)) {
-    df <- utils::read.delim(
-      df,
-      sep = "\t",
-      stringsAsFactors = FALSE,
-      quote = "\"",
-      na.strings = "",
-      check.names = FALSE
-    )
-  }
-
-  if (!is.data.frame(df)) {
-    stop("`df` must be a data frame (output of build_lsdf()).")
+  # Handle seed input: YAML file paths, folders, or seed lists
+  # First check if df is a character path to a YAML file or directory
+  if (is.character(df) && length(df) == 1) {
+    if (dir.exists(df)) {
+      # It's a folder with separate YAML files
+      seed <- load_seed(df)
+      df <- build_lsdf(seed)
+    } else if (file.exists(df) && !dir.exists(df)) {
+      # File exists and is not a directory - check if it's a TSV or YAML
+      ext <- tolower(tools::file_ext(df))
+      if (ext == "tsv") {
+        # It's a TSV file
+        df <- utils::read.delim(
+          df,
+          sep = "\t",
+          stringsAsFactors = FALSE,
+          quote = "\"",
+          na.strings = "",
+          check.names = FALSE
+        )
+      } else if (ext %in% c("yml", "yaml")) {
+        # It's a YAML seed file
+        seed <- load_seed(df)
+        df <- build_lsdf(seed)
+      } else {
+        # Unknown file type, try TSV first
+        df <- utils::read.delim(
+          df,
+          sep = "\t",
+          stringsAsFactors = FALSE,
+          quote = "\"",
+          na.strings = "",
+          check.names = FALSE
+        )
+      }
+    } else {
+      # Path doesn't exist - could be a seed list or invalid
+      trySeed <- tryCatch({
+        seed <- load_seed(df)
+        build_lsdf(seed)
+      }, error = function(e) NULL)
+      
+      if (!is.null(trySeed) && is.data.frame(trySeed)) {
+        df <- trySeed
+      } else {
+        stop("`df` must be a data frame (output of build_lsdf()), a path to a TSV file, or a path to a seed YAML file.")
+      }
+    }
+  } else if (!is.data.frame(df)) {
+    # df is not a character string and not a data frame - try as seed list
+    trySeed <- tryCatch({
+      seed <- load_seed(df)
+      build_lsdf(seed)
+    }, error = function(e) NULL)
+    
+    if (!is.null(trySeed) && is.data.frame(trySeed)) {
+      df <- trySeed
+    } else {
+      stop("`df` must be a data frame (output of build_lsdf()), a path to a TSV file, or a valid seed.")
+    }
   }
   ext <- tolower(tools::file_ext(output_file))
   if (!nzchar(ext)) {

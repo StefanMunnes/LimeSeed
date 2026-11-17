@@ -213,3 +213,99 @@ test_that("markdown hard breaks are added to each physical line", {
     "a  \nb  "
   )
 })
+
+
+test_that("ls_codebook accepts seed YAML file path", {
+  temp_dir <- tempdir()
+  survey_yaml <- file.path(temp_dir, "survey.yaml")
+  survey_data <- list(
+    settings = list(
+      language = "en",
+      titles = list(en = "Test Survey")
+    ),
+    structure = list(
+      grp1 = list(
+        q1 = list(
+          type = "radio",
+          questionTexts = list(en = "Question?"),
+          answerOptions = list(
+            "1" = list(en = "Yes"),
+            "2" = list(en = "No")
+          )
+        )
+      )
+    )
+  )
+  yaml::write_yaml(survey_data, survey_yaml)
+  
+  codebook_file <- file.path(temp_dir, "codebook.html")
+  result <- LimeSeed::ls_codebook(survey_yaml, output_file = codebook_file)
+  
+  expect_true(file.exists(result))
+  expect_true(file.exists(codebook_file))
+})
+
+
+test_that("ls_codebook accepts seed list", {
+  temp_dir <- tempdir()
+  survey_yaml <- file.path(temp_dir, "survey.yaml")
+  survey_data <- list(
+    settings = list(
+      language = "en",
+      titles = list(en = "Test Survey 2")
+    ),
+    structure = list(
+      grp1 = list(
+        q1 = list(
+          type = "radio",
+          questionTexts = list(en = "Question?"),
+          answerOptions = list(
+            "1" = list(en = "Yes")
+          )
+        )
+      )
+    )
+  )
+  yaml::write_yaml(survey_data, survey_yaml)
+  
+  seed <- LimeSeed::load_seed(survey_yaml)
+  codebook_file <- file.path(temp_dir, "codebook2.html")
+  result <- LimeSeed::ls_codebook(seed, output_file = codebook_file)
+  
+  expect_true(file.exists(result))
+  expect_true(file.exists(codebook_file))
+})
+
+
+test_that("ls_codebook accepts folder with YAML files", {
+  temp_dir <- tempdir()
+  folder_dir <- file.path(temp_dir, "survey_folder")
+  dir.create(folder_dir)
+  
+  survey_data <- list(
+    settings = list(
+      language = "en",
+      titles = list(en = "Test Survey 3")
+    ),
+    structure = list(
+      grp1 = list(
+        q1 = list(
+          type = "radio",
+          questionTexts = list(en = "Question?"),
+          answerOptions = list(
+            "1" = list(en = "Yes")
+          )
+        )
+      )
+    )
+  )
+  
+  yaml::write_yaml(survey_data$settings, file.path(folder_dir, "settings.yml"))
+  yaml::write_yaml(survey_data$structure, file.path(folder_dir, "structure.yaml"))
+  
+  codebook_file <- file.path(temp_dir, "codebook3.html")
+  result <- LimeSeed::ls_codebook(folder_dir, output_file = codebook_file)
+  
+  expect_true(file.exists(result))
+  expect_true(file.exists(codebook_file))
+})
