@@ -107,7 +107,7 @@ ls_codebook <- function(
       sprintf('    reference-doc: "%s"', .yaml_path(.codebook_reference_docx()))
     )
   } else if (identical(ext, "pdf")) {
-    c("format:", "  typst:", "    page-numbering: true")
+    c("format:", "  typst:", "    page-numbering: '1'")
   } else {
     sprintf("format: %s", ext)
   }
